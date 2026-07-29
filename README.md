@@ -1,2 +1,3 @@
-# Carbiendar
-Personal productivity app to organize events, tasks, routines, schedules, finances, and daily life in one place.
+# FocusDesk
+
+An open-source personal productivity platform to manage your tasks, calendar, habits, routines, finances, and daily life in one place.
