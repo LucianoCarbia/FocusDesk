@@ -36,3 +36,6 @@ dist-ssr/
 .npm/
 .eslintcache
 .pnpm-store/
+
+# Claude Code
+CLAUDE.md
