@@ -1,79 +1,36 @@
 # FocusDesk
 
-An open-source personal productivity platform to manage your tasks, calendar, habits, routines, finances, and daily life in one place.
+FocusDesk es una aplicación de productividad personal desarrollada desde cero para organizar eventos, tareas, servicios, finanzas, ahorros y la vida diaria en un único lugar.
 
-## Development
+El objetivo del proyecto es construir una aplicación moderna, simple y completamente local, priorizando la privacidad del usuario mediante almacenamiento en SQLite y una interfaz multiplataforma basada en Tauri.
 
-This project is built with React + TypeScript + Vite.
+## Características
 
-Currently, two official plugins are available:
+- 📅 Calendario con eventos y horarios recurrentes.
+- 💰 Gestión de ingresos y gastos.
+- 📄 Administración de servicios recurrentes.
+- 💵 Seguimiento de ahorros en dólares.
+- 🔔 Recordatorios inteligentes en el Home.
+- 💾 Persistencia local con SQLite.
+- 🖥️ Aplicación de escritorio con Tauri.
+- 📱 Preparada para Android.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-### React Compiler
+- React
+- TypeScript
+- Vite
+- Tauri 2
+- SQLite
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desarrollo
 
-### Expanding the ESLint configuration
+Este proyecto fue desarrollado desde cero utilizando Git y GitHub con un flujo de trabajo basado en Issues, Pull Requests y ramas de integración.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+La implementación se realizó en colaboración con **Claude (Anthropic)** como asistente de desarrollo, mientras que el diseño de la arquitectura, las decisiones funcionales, la organización del proyecto y la dirección del desarrollo fueron definidas por el autor.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+El objetivo es documentar la evolución completa del proyecto versión por versión.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Licencia
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+MIT
