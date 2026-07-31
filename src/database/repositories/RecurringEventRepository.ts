@@ -5,6 +5,7 @@ import type {
   RecurringEventSkip,
   RecurringEventUpdate,
 } from '../../domain/calendario/RecurringEvent'
+import type { MovementType } from '../../domain/shared/MovementType'
 
 interface RecurringEventRow {
   id: string
@@ -18,6 +19,9 @@ interface RecurringEventRow {
   start_date: string
   end_date: string | null
   skip_holidays: number
+  amount: number | null
+  movement_type: MovementType | null
+  finance_category_id: string | null
   created_at: string
   updated_at: string
 }
@@ -45,6 +49,9 @@ function toRecurringEvent(row: RecurringEventRow): RecurringEvent {
     startDate: row.start_date,
     endDate: row.end_date,
     skipHolidays: row.skip_holidays === 1,
+    amount: row.amount,
+    movementType: row.movement_type,
+    financeCategoryId: row.finance_category_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -90,8 +97,8 @@ export const RecurringEventRepository = {
     const db = await getDb()
     await db.execute(
       `INSERT INTO recurring_events
-        (id, title, category_id, days_of_week, start_time, end_time, location, notes, start_date, end_date, skip_holidays, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, datetime('now'), datetime('now'))`,
+        (id, title, category_id, days_of_week, start_time, end_time, location, notes, start_date, end_date, skip_holidays, amount, movement_type, finance_category_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, datetime('now'), datetime('now'))`,
       [
         id,
         event.title,
@@ -104,6 +111,9 @@ export const RecurringEventRepository = {
         event.startDate,
         event.endDate,
         event.skipHolidays ? 1 : 0,
+        event.amount,
+        event.movementType,
+        event.financeCategoryId,
       ],
     )
   },
@@ -114,8 +124,9 @@ export const RecurringEventRepository = {
       `UPDATE recurring_events SET
         title = $1, category_id = $2, days_of_week = $3, start_time = $4, end_time = $5,
         location = $6, notes = $7, start_date = $8, end_date = $9, skip_holidays = $10,
+        amount = $11, movement_type = $12, finance_category_id = $13,
         updated_at = datetime('now')
-       WHERE id = $11`,
+       WHERE id = $14`,
       [
         event.title,
         event.categoryId,
@@ -127,6 +138,9 @@ export const RecurringEventRepository = {
         event.startDate,
         event.endDate,
         event.skipHolidays ? 1 : 0,
+        event.amount,
+        event.movementType,
+        event.financeCategoryId,
         id,
       ],
     )

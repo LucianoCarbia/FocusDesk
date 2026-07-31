@@ -1,6 +1,8 @@
 import { RecurringEventRepository } from '../../database/repositories/RecurringEventRepository'
 import type { RecurringEvent, RecurringEventSkip } from '../../domain/calendario/RecurringEvent'
+import type { MovementType } from '../../domain/shared/MovementType'
 import { obtenerOCrearCategoria } from './categoryService'
+import { obtenerOCrearCategoria as obtenerOCrearCategoriaFinanciera } from '../finanzas/financeCategoryService'
 
 export interface RecurringEventFormInput {
   title: string
@@ -13,6 +15,9 @@ export interface RecurringEventFormInput {
   startDate: string
   endDate: string | null
   skipHolidays: boolean
+  amount: number | null
+  movementType: MovementType | null
+  financeCategoryName: string | null
 }
 
 function validar(input: RecurringEventFormInput) {
@@ -23,6 +28,19 @@ function validar(input: RecurringEventFormInput) {
   if (input.endDate && input.endDate < input.startDate) {
     throw new Error('La fecha de fin no puede ser anterior a la de inicio')
   }
+  if (input.amount != null) {
+    if (input.amount <= 0) throw new Error('El monto debe ser mayor a cero')
+    if (!input.movementType) throw new Error('Elegí el tipo de movimiento (ingreso, gasto o ahorro)')
+    if (!input.financeCategoryName?.trim()) throw new Error('La categoría de Finanzas es obligatoria')
+  }
+}
+
+async function resolverDatosFinancieros(input: RecurringEventFormInput) {
+  if (input.amount == null || !input.movementType || !input.financeCategoryName) {
+    return { amount: null, movementType: null, financeCategoryId: null }
+  }
+  const categoriaFinanciera = await obtenerOCrearCategoriaFinanciera(input.financeCategoryName, input.movementType)
+  return { amount: input.amount, movementType: input.movementType, financeCategoryId: categoriaFinanciera.id }
 }
 
 export async function listarHorariosFijos(): Promise<RecurringEvent[]> {
@@ -40,6 +58,7 @@ export async function listarSkips(recurringEventIds: string[]): Promise<Recurrin
 export async function crearHorarioFijo(input: RecurringEventFormInput): Promise<void> {
   validar(input)
   const categoria = await obtenerOCrearCategoria(input.categoryName)
+  const financiero = await resolverDatosFinancieros(input)
   const id = crypto.randomUUID()
   await RecurringEventRepository.create(id, {
     title: input.title.trim(),
@@ -52,12 +71,14 @@ export async function crearHorarioFijo(input: RecurringEventFormInput): Promise<
     startDate: input.startDate,
     endDate: input.endDate,
     skipHolidays: input.skipHolidays,
+    ...financiero,
   })
 }
 
 export async function actualizarHorarioFijo(id: string, input: RecurringEventFormInput): Promise<void> {
   validar(input)
   const categoria = await obtenerOCrearCategoria(input.categoryName)
+  const financiero = await resolverDatosFinancieros(input)
   await RecurringEventRepository.update(id, {
     title: input.title.trim(),
     categoryId: categoria.id,
@@ -69,6 +90,7 @@ export async function actualizarHorarioFijo(id: string, input: RecurringEventFor
     startDate: input.startDate,
     endDate: input.endDate,
     skipHolidays: input.skipHolidays,
+    ...financiero,
   })
 }
 

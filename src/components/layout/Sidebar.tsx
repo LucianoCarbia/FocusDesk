@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { CalendarIcon, HomeIcon, SettingsIcon, WalletIcon } from '../icons/Icons'
+import { CalendarIcon, HomeIcon, PiggyBankIcon, SettingsIcon, WalletIcon } from '../icons/Icons'
 import styles from './Sidebar.module.css'
 
 const navItems = [
   { to: '/', label: 'Inicio', icon: HomeIcon, end: true },
   { to: '/calendario', label: 'Calendario', icon: CalendarIcon, end: false },
   { to: '/finanzas', label: 'Finanzas', icon: WalletIcon, end: false },
+  { to: '/ahorros', label: 'Ahorros', icon: PiggyBankIcon, end: false },
   { to: '/configuracion', label: 'Configuración', icon: SettingsIcon, end: false },
 ]
 

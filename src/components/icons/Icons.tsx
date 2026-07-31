@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react'
 
-type IconProps = SVGProps<SVGSVGElement>
+export type IconProps = SVGProps<SVGSVGElement>
 
 const base: IconProps = {
   width: 20,
@@ -160,6 +160,133 @@ export function XCircleIcon(props: IconProps) {
       <circle cx="12" cy="12" r="9" />
       <path d="M15 9l-6 6" />
       <path d="M9 9l6 6" />
+    </svg>
+  )
+}
+
+export function CartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="9" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+      <path d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.8h7.7a2 2 0 0 0 2-1.6L21 8H6" />
+    </svg>
+  )
+}
+
+export function GameIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2" y="8" width="20" height="9" rx="4" />
+      <path d="M7 10.5v4" />
+      <path d="M5 12.5h4" />
+      <circle cx="15.5" cy="11" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="13.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function CarIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 16V11l2-5h12l2 5v5" />
+      <path d="M4 16h16" />
+      <circle cx="7.5" cy="16" r="1.5" />
+      <circle cx="16.5" cy="16" r="1.5" />
+    </svg>
+  )
+}
+
+export function BookIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17Z" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}
+
+export function HeartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 20s-7-4.4-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.6-9.5 9-9.5 9Z" />
+    </svg>
+  )
+}
+
+export function DotsIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="5" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function PiggyBankIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 12a6 6 0 0 1 6-6h4a5 5 0 0 1 5 5v1l2 1-2 1a5 5 0 0 1-5 5H10a6 6 0 0 1-6-6Z" />
+      <path d="M15 8V6" />
+      <circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none" />
+      <path d="M7 18v2" />
+      <path d="M13 18v2" />
+    </svg>
+  )
+}
+
+export function ArrowUpRightIcon(props: IconProps) {
+  return (
+    <svg {...base} width={16} height={16} {...props}>
+      <path d="M7 17L17 7" />
+      <path d="M9 7h8v8" />
+    </svg>
+  )
+}
+
+export function ArrowDownLeftIcon(props: IconProps) {
+  return (
+    <svg {...base} width={16} height={16} {...props}>
+      <path d="M17 7L7 17" />
+      <path d="M15 17H7V9" />
+    </svg>
+  )
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  )
+}
+
+export function TrendingDownIcon(props: IconProps) {
+  return (
+    <svg {...base} width={14} height={14} {...props}>
+      <path d="M3 7l7 7 4-4 7 7" />
+      <path d="M21 11v6h-6" />
+    </svg>
+  )
+}
+
+export function AlertTriangleIcon(props: IconProps) {
+  return (
+    <svg {...base} width={16} height={16} {...props}>
+      <path d="M12 3.5 2.5 20h19L12 3.5Z" />
+      <path d="M12 9.5v4.5" />
+      <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+export function ReceiptIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 2h12v19l-3-2-3 2-3-2-3 2V2Z" />
+      <path d="M9 8h6" />
+      <path d="M9 12h6" />
     </svg>
   )
 }

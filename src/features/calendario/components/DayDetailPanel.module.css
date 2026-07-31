@@ -118,3 +118,137 @@
   color: var(--text);
   cursor: pointer;
 }
+
+.movements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.movementsTitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.movementItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.movementBar {
+  width: 4px;
+  height: 16px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.movementTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movementAmount,
+.movementAmountGasto {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.movementAmount {
+  color: var(--accent);
+}
+
+.movementAmountGasto {
+  color: var(--danger);
+}
+
+.vencimiento {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 10px;
+}
+
+.vencimientoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.vencimientoBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.vencimientoTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vencimientoAmount {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.vencimientoEstado {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vencimientoPagado {
+  border-left-color: var(--accent);
+}
+
+.vencimientoPagado .vencimientoEstado {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.vencimientoPendiente {
+  border-left-color: #f59e0b;
+}
+
+.vencimientoPendiente .vencimientoEstado {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.vencimientoVencido {
+  border-left-color: var(--danger);
+}
+
+.vencimientoVencido .vencimientoEstado {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}

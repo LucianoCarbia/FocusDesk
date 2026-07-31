@@ -73,6 +73,134 @@ fn migrations() -> Vec<Migration> {
                 CREATE INDEX idx_recurring_skips_event ON recurring_event_skips(recurring_event_id);
             ",
         },
+        Migration {
+            version: 3,
+            description: "create_finance_categories_and_movements",
+            kind: MigrationKind::Up,
+            sql: "
+                CREATE TABLE finance_categories (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    icon TEXT NOT NULL,
+                    color TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(name, type)
+                );
+
+                CREATE TABLE movements (
+                    id TEXT PRIMARY KEY,
+                    type TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    category_id TEXT NOT NULL REFERENCES finance_categories(id),
+                    date TEXT NOT NULL,
+                    notes TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE INDEX idx_movements_date ON movements(date);
+
+                INSERT INTO finance_categories (id, name, type, icon, color, created_at) VALUES
+                    ('fc-alimentacion', 'Alimentación', 'gasto', 'cart', '#10b981', datetime('now')),
+                    ('fc-hogar', 'Hogar', 'gasto', 'home', '#6366f1', datetime('now')),
+                    ('fc-ocio', 'Ocio', 'gasto', 'game', '#f97316', datetime('now')),
+                    ('fc-transporte', 'Transporte', 'gasto', 'car', '#22c55e', datetime('now')),
+                    ('fc-estudios', 'Estudios', 'gasto', 'book', '#8b5cf6', datetime('now')),
+                    ('fc-salud', 'Salud', 'gasto', 'heart', '#ef4444', datetime('now')),
+                    ('fc-otros-gasto', 'Otros', 'gasto', 'dots', '#64748b', datetime('now')),
+                    ('fc-salario', 'Salario', 'ingreso', 'dollar', '#10b981', datetime('now')),
+                    ('fc-otros-ingreso', 'Otros ingresos', 'ingreso', 'dots', '#64748b', datetime('now')),
+                    ('fc-ahorro', 'Ahorro', 'ahorro', 'piggy', '#f59e0b', datetime('now'));
+            ",
+        },
+        Migration {
+            version: 4,
+            description: "link_calendario_finanzas",
+            kind: MigrationKind::Up,
+            sql: "
+                ALTER TABLE events ADD COLUMN amount REAL;
+                ALTER TABLE events ADD COLUMN movement_type TEXT;
+                ALTER TABLE events ADD COLUMN finance_category_id TEXT REFERENCES finance_categories(id);
+
+                ALTER TABLE recurring_events ADD COLUMN amount REAL;
+                ALTER TABLE recurring_events ADD COLUMN movement_type TEXT;
+                ALTER TABLE recurring_events ADD COLUMN finance_category_id TEXT REFERENCES finance_categories(id);
+
+                CREATE TABLE movement_links (
+                    id TEXT PRIMARY KEY,
+                    source_type TEXT NOT NULL,
+                    source_id TEXT NOT NULL,
+                    occurrence_date TEXT NOT NULL,
+                    movement_id TEXT REFERENCES movements(id) ON DELETE CASCADE,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(source_type, source_id, occurrence_date)
+                );
+
+                CREATE INDEX idx_movement_links_source ON movement_links(source_type, source_id);
+            ",
+        },
+        Migration {
+            version: 5,
+            description: "create_services",
+            kind: MigrationKind::Up,
+            sql: "
+                CREATE TABLE services (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    first_due_date TEXT NOT NULL,
+                    frequency TEXT NOT NULL,
+                    custom_interval_days INTEGER,
+                    notes TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE service_periods (
+                    id TEXT PRIMARY KEY,
+                    service_id TEXT NOT NULL REFERENCES services(id),
+                    due_date TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    paid INTEGER NOT NULL DEFAULT 0,
+                    paid_at TEXT,
+                    movement_id TEXT REFERENCES movements(id),
+                    created_at TEXT NOT NULL,
+                    UNIQUE(service_id, due_date)
+                );
+
+                CREATE INDEX idx_service_periods_due_date ON service_periods(due_date);
+                CREATE INDEX idx_service_periods_service ON service_periods(service_id);
+
+                INSERT INTO finance_categories (id, name, type, icon, color, created_at) VALUES
+                    ('fc-servicios', 'Servicios', 'gasto', 'receipt', '#0ea5e9', datetime('now'));
+            ",
+        },
+        Migration {
+            version: 6,
+            description: "create_savings_movements",
+            kind: MigrationKind::Up,
+            sql: "
+                CREATE TABLE savings_movements (
+                    id TEXT PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    usd_amount REAL NOT NULL,
+                    ars_amount REAL NOT NULL,
+                    notes TEXT,
+                    movement_id TEXT NOT NULL REFERENCES movements(id),
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE INDEX idx_savings_movements_date ON savings_movements(date);
+
+                INSERT INTO finance_categories (id, name, type, icon, color, created_at) VALUES
+                    ('fc-compra-dolares', 'Compra de dólares', 'ahorro', 'dollar', '#22c55e', datetime('now')),
+                    ('fc-retiro-ahorro', 'Retiro de ahorro', 'ingreso', 'dollar', '#0ea5e9', datetime('now'));
+            ",
+        },
     ]
 }
 

@@ -1,0 +1,70 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+}
+
+.registerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.monthLabel {
+  min-width: 160px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-h);
+  text-transform: capitalize;
+}
+
+.error {
+  color: var(--danger);
+  margin: 0;
+}
+
+.loading {
+  color: var(--text);
+  margin: 0;
+}
