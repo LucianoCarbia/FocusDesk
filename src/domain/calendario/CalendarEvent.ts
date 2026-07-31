@@ -1,3 +1,5 @@
+import type { MovementType } from '../shared/MovementType'
+
 export interface CalendarEvent {
   id: string
   title: string
@@ -7,6 +9,9 @@ export interface CalendarEvent {
   endTime: string | null
   location: string | null
   notes: string | null
+  amount: number | null
+  movementType: MovementType | null
+  financeCategoryId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -19,6 +24,9 @@ export interface NewCalendarEvent {
   endTime: string | null
   location: string | null
   notes: string | null
+  amount: number | null
+  movementType: MovementType | null
+  financeCategoryId: string | null
 }
 
 export type CalendarEventUpdate = NewCalendarEvent

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
+import { AhorrosPage } from '../pages/Ahorros/AhorrosPage'
 import { CalendarioPage } from '../pages/Calendario/CalendarioPage'
 import { ConfiguracionPage } from '../pages/Configuracion/ConfiguracionPage'
 import { FinanzasPage } from '../pages/Finanzas/FinanzasPage'
@@ -12,6 +13,7 @@ export function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="calendario" element={<CalendarioPage />} />
         <Route path="finanzas" element={<FinanzasPage />} />
+        <Route path="ahorros" element={<AhorrosPage />} />
         <Route path="configuracion" element={<ConfiguracionPage />} />
       </Route>
     </Routes>

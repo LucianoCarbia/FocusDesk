@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import type { Category } from '../../../domain/calendario/Category'
 import type { RecurringEvent } from '../../../domain/calendario/RecurringEvent'
+import type { FinanceCategory } from '../../../domain/finanzas/FinanceCategory'
+import type { MovementType } from '../../../domain/shared/MovementType'
 import type { RecurringEventFormInput } from '../../../services/calendario/recurringEventService'
 import { CloseIcon } from '../../../components/icons/Icons'
 import { toISODate } from '../../../utils/date'
 import { toErrorMessage } from '../../../utils/errors'
+import { CategorySelect } from './CategorySelect'
+import { FinanceLinkFields } from './FinanceLinkFields'
 import styles from './RecurringEventFormDialog.module.css'
 
 const WEEKDAYS = [
@@ -21,6 +25,7 @@ interface RecurringEventFormDialogProps {
   initialDate: Date
   editingEvent: RecurringEvent | null
   categories: Category[]
+  financeCategories: FinanceCategory[]
   onClose: () => void
   onSubmit: (input: RecurringEventFormInput) => Promise<void>
 }
@@ -29,10 +34,15 @@ function categoryName(categories: Category[], id: string): string {
   return categories.find((c) => c.id === id)?.name ?? ''
 }
 
+function financeCategoryName(financeCategories: FinanceCategory[], id: string | null): string {
+  return financeCategories.find((c) => c.id === id)?.name ?? ''
+}
+
 export function RecurringEventFormDialog({
   initialDate,
   editingEvent,
   categories,
+  financeCategories,
   onClose,
   onSubmit,
 }: RecurringEventFormDialogProps) {
@@ -49,6 +59,14 @@ export function RecurringEventFormDialog({
   const [hasEndDate, setHasEndDate] = useState(Boolean(editingEvent?.endDate))
   const [endDate, setEndDate] = useState(editingEvent?.endDate ?? '')
   const [skipHolidays, setSkipHolidays] = useState(editingEvent?.skipHolidays ?? true)
+  const [financeEnabled, setFinanceEnabled] = useState(editingEvent?.amount != null)
+  const [financeType, setFinanceType] = useState<MovementType>(editingEvent?.movementType ?? 'gasto')
+  const [financeAmount, setFinanceAmount] = useState(
+    editingEvent?.amount != null ? String(editingEvent.amount) : '',
+  )
+  const [financeCategory, setFinanceCategory] = useState(
+    financeCategoryName(financeCategories, editingEvent?.financeCategoryId ?? null),
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -74,6 +92,9 @@ export function RecurringEventFormDialog({
         startDate,
         endDate: hasEndDate ? endDate : null,
         skipHolidays,
+        amount: financeEnabled ? Number(financeAmount) : null,
+        movementType: financeEnabled ? financeType : null,
+        financeCategoryName: financeEnabled ? financeCategory : null,
       })
       onClose()
     } catch (err) {
@@ -101,18 +122,7 @@ export function RecurringEventFormDialog({
 
           <label className={styles.field}>
             <span>Categoría</span>
-            <input
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              list="recurring-category-options"
-              placeholder="Elegí una o escribí una nueva"
-              required
-            />
-            <datalist id="recurring-category-options">
-              {categories.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
+            <CategorySelect categories={categories} value={category} onChange={setCategory} />
           </label>
 
           <div className={styles.field}>
@@ -181,6 +191,19 @@ export function RecurringEventFormDialog({
             />
             <span>No repetir en feriados</span>
           </label>
+
+          <FinanceLinkFields
+            financeCategories={financeCategories}
+            enabled={financeEnabled}
+            onEnabledChange={setFinanceEnabled}
+            type={financeType}
+            onTypeChange={setFinanceType}
+            amount={financeAmount}
+            onAmountChange={setFinanceAmount}
+            categoryName={financeCategory}
+            onCategoryNameChange={setFinanceCategory}
+            datalistId="recurring-finance-category-options"
+          />
 
           {error && <p className={styles.error}>{error}</p>}
 

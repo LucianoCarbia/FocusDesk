@@ -1,7 +1,10 @@
 import type { Category } from '../../domain/calendario/Category'
 import type { AgendaEntry } from '../../domain/calendario/occurrences'
 import { BellIcon, ClockIcon, DollarIcon, RepeatIcon, SparkleIcon, WalletIcon } from '../../components/icons/Icons'
+import { AvisosServicios } from '../../features/home/components/AvisosServicios'
 import { useHomeAgenda } from '../../features/home/hooks/useHomeAgenda'
+import { useHomeFinanzas } from '../../features/home/hooks/useHomeFinanzas'
+import { formatCurrency } from '../../utils/currency'
 import styles from './HomePage.module.css'
 
 const today = new Intl.DateTimeFormat('es-AR', {
@@ -9,15 +12,6 @@ const today = new Intl.DateTimeFormat('es-AR', {
   day: 'numeric',
   month: 'long',
 }).format(new Date())
-
-// TODO: reemplazar por datos reales cuando exista el módulo Finanzas.
-const saldoDisponible = 396300
-
-const currencyFormatter = new Intl.NumberFormat('es-AR', {
-  style: 'currency',
-  currency: 'ARS',
-  maximumFractionDigits: 0,
-})
 
 interface AgendaSectionProps {
   title: string
@@ -64,6 +58,7 @@ function AgendaSection({ title, items, categories }: AgendaSectionProps) {
 export function HomePage() {
   const formattedToday = today.charAt(0).toUpperCase() + today.slice(1)
   const { categories, eventosHoy, eventosManiana, loading, error } = useHomeAgenda()
+  const { balance, loading: loadingFinanzas } = useHomeFinanzas()
 
   return (
     <div className={styles.home}>
@@ -81,7 +76,7 @@ export function HomePage() {
         </span>
         <div className={styles.summaryText}>
           <span className={styles.summaryLabel}>Saldo disponible del mes</span>
-          <span className={styles.summaryValue}>{currencyFormatter.format(saldoDisponible)}</span>
+          <span className={styles.summaryValue}>{loadingFinanzas ? '…' : formatCurrency(balance)}</span>
         </div>
         <span className={styles.summaryBadge} aria-hidden="true">
           <DollarIcon />
@@ -90,6 +85,8 @@ export function HomePage() {
 
       {error && <p className={styles.error}>{error}</p>}
       {loading && <p className={styles.loading}>Cargando…</p>}
+
+      <AvisosServicios />
 
       <AgendaSection title="Hoy" items={eventosHoy} categories={categories} />
       <AgendaSection title="Mañana" items={eventosManiana} categories={categories} />

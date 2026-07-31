@@ -17,9 +17,12 @@ export function CalendarioPage() {
     selectedDate,
     matrix,
     categories,
+    financeCategories,
     loading,
     error,
     eventosDelDia,
+    movimientosDelDia,
+    serviciosDelDia,
     setSelectedDate,
     goToPrevMonth,
     goToNextMonth,
@@ -88,6 +91,9 @@ export function CalendarioPage() {
           selectedDate={selectedDate}
           events={eventosDelDia(selectedDate)}
           categories={categories}
+          movements={movimientosDelDia(selectedDate)}
+          financeCategories={financeCategories}
+          servicios={serviciosDelDia(selectedDate)}
           onAdd={openNewEventDialog}
           onEdit={openEditDialog}
           onDelete={(event) => borrarEvento(event.id)}
@@ -105,6 +111,7 @@ export function CalendarioPage() {
           initialDate={selectedDate}
           editingEvent={editingEvent}
           categories={categories}
+          financeCategories={financeCategories}
           onClose={() => setDialogOpen(false)}
           onSubmit={(input) => (editingEvent ? editarEvento(editingEvent.id, input) : agregarEvento(input))}
           onDelete={(event) => borrarEvento(event.id)}
@@ -114,6 +121,7 @@ export function CalendarioPage() {
       {recurringManagerOpen && (
         <RecurringEventsManager
           categories={categories}
+          financeCategories={financeCategories}
           onClose={() => setRecurringManagerOpen(false)}
           onChange={() => void recargar()}
         />

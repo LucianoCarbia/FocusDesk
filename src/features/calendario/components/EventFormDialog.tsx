@@ -1,16 +1,21 @@
 import { useState, type FormEvent } from 'react'
 import type { CalendarEvent } from '../../../domain/calendario/CalendarEvent'
 import type { Category } from '../../../domain/calendario/Category'
+import type { FinanceCategory } from '../../../domain/finanzas/FinanceCategory'
+import type { MovementType } from '../../../domain/shared/MovementType'
 import type { EventFormInput } from '../../../services/calendario/eventService'
 import { CloseIcon, TrashIcon } from '../../../components/icons/Icons'
 import { toISODate } from '../../../utils/date'
 import { toErrorMessage } from '../../../utils/errors'
+import { CategorySelect } from './CategorySelect'
+import { FinanceLinkFields } from './FinanceLinkFields'
 import styles from './EventFormDialog.module.css'
 
 interface EventFormDialogProps {
   initialDate: Date
   editingEvent: CalendarEvent | null
   categories: Category[]
+  financeCategories: FinanceCategory[]
   onClose: () => void
   onSubmit: (input: EventFormInput) => Promise<void>
   onDelete: (event: CalendarEvent) => Promise<void>
@@ -20,10 +25,15 @@ function categoryName(categories: Category[], id: string): string {
   return categories.find((c) => c.id === id)?.name ?? ''
 }
 
+function financeCategoryName(financeCategories: FinanceCategory[], id: string | null): string {
+  return financeCategories.find((c) => c.id === id)?.name ?? ''
+}
+
 export function EventFormDialog({
   initialDate,
   editingEvent,
   categories,
+  financeCategories,
   onClose,
   onSubmit,
   onDelete,
@@ -38,6 +48,14 @@ export function EventFormDialog({
   const [endTimeUnknown, setEndTimeUnknown] = useState(Boolean(editingEvent) && !editingEvent?.endTime)
   const [location, setLocation] = useState(editingEvent?.location ?? '')
   const [notes, setNotes] = useState(editingEvent?.notes ?? '')
+  const [financeEnabled, setFinanceEnabled] = useState(editingEvent?.amount != null)
+  const [financeType, setFinanceType] = useState<MovementType>(editingEvent?.movementType ?? 'gasto')
+  const [financeAmount, setFinanceAmount] = useState(
+    editingEvent?.amount != null ? String(editingEvent.amount) : '',
+  )
+  const [financeCategory, setFinanceCategory] = useState(
+    financeCategoryName(financeCategories, editingEvent?.financeCategoryId ?? null),
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,6 +72,9 @@ export function EventFormDialog({
         endTime: endTimeUnknown ? null : endTime || null,
         location: location || null,
         notes: notes || null,
+        amount: financeEnabled ? Number(financeAmount) : null,
+        movementType: financeEnabled ? financeType : null,
+        financeCategoryName: financeEnabled ? financeCategory : null,
       })
       onClose()
     } catch (err) {
@@ -94,18 +115,7 @@ export function EventFormDialog({
 
           <label className={styles.field}>
             <span>Categoría</span>
-            <input
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              list="category-options"
-              placeholder="Elegí una o escribí una nueva"
-              required
-            />
-            <datalist id="category-options">
-              {categories.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
+            <CategorySelect categories={categories} value={category} onChange={setCategory} />
           </label>
 
           <label className={styles.field}>
@@ -151,6 +161,19 @@ export function EventFormDialog({
             <span>Notas</span>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Opcional" rows={3} />
           </label>
+
+          <FinanceLinkFields
+            financeCategories={financeCategories}
+            enabled={financeEnabled}
+            onEnabledChange={setFinanceEnabled}
+            type={financeType}
+            onTypeChange={setFinanceType}
+            amount={financeAmount}
+            onAmountChange={setFinanceAmount}
+            categoryName={financeCategory}
+            onCategoryNameChange={setFinanceCategory}
+            datalistId="event-finance-category-options"
+          />
 
           {error && <p className={styles.error}>{error}</p>}
 

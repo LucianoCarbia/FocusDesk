@@ -1,0 +1,118 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.middle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.title2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.date {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.amount,
+.amountGasto {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.amount {
+  color: var(--accent);
+}
+
+.amountGasto {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dismissButton,
+.confirmButton {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dismissButton {
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+}
+
+.confirmButton {
+  border: none;
+  background: var(--accent);
+  color: white;
+}
+
+.dismissButton:disabled,
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

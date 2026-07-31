@@ -1,0 +1,199 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.loading,
+.empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.statValueVencido,
+.statValuePagado {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.statValueVencido {
+  color: var(--danger);
+}
+
+.statValuePagado {
+  color: var(--accent);
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.totalValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.itemTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.badgePagado,
+.badgePendiente,
+.badgeVencido {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badgePagado {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.badgePendiente {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.badgeVencido {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.itemBody {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.itemAmount {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.itemDate {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payButton {
+  margin-right: auto;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.itemActions button:not(.payButton) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}

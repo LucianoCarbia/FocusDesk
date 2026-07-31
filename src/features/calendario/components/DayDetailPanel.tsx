@@ -1,14 +1,34 @@
 import type { Category } from '../../../domain/calendario/Category'
 import { holidayName } from '../../../domain/calendario/holidays'
 import type { AgendaEntry } from '../../../domain/calendario/occurrences'
-import { PencilIcon, PlusIcon, RepeatIcon, TrashIcon, XCircleIcon } from '../../../components/icons/Icons'
+import type { FinanceCategory } from '../../../domain/finanzas/FinanceCategory'
+import type { Movement } from '../../../domain/finanzas/Movement'
+import type { EstadoServicio } from '../../../domain/servicios/estado'
+import { PencilIcon, PlusIcon, ReceiptIcon, RepeatIcon, TrashIcon, XCircleIcon } from '../../../components/icons/Icons'
+import type { ServicioConEstado } from '../../../services/servicios/serviceService'
+import { formatCurrency } from '../../../utils/currency'
 import { formatFullDate } from '../../../utils/date'
 import styles from './DayDetailPanel.module.css'
+
+const ESTADO_LABEL: Record<EstadoServicio, string> = {
+  pagado: 'Pagado',
+  pendiente: 'Pendiente',
+  vencido: 'Vencido',
+}
+
+const ESTADO_CLASS: Record<EstadoServicio, string> = {
+  pagado: styles.vencimientoPagado,
+  pendiente: '',
+  vencido: styles.vencimientoVencido,
+}
 
 interface DayDetailPanelProps {
   selectedDate: Date
   events: AgendaEntry[]
   categories: Category[]
+  movements: Movement[]
+  financeCategories: FinanceCategory[]
+  servicios: ServicioConEstado[]
   onAdd: () => void
   onEdit: (event: AgendaEntry) => void
   onDelete: (event: AgendaEntry) => void
@@ -19,12 +39,16 @@ export function DayDetailPanel({
   selectedDate,
   events,
   categories,
+  movements,
+  financeCategories,
+  servicios,
   onAdd,
   onEdit,
   onDelete,
   onCancelOccurrence,
 }: DayDetailPanelProps) {
   const categoryById = new Map(categories.map((c) => [c.id, c]))
+  const financeCategoryById = new Map(financeCategories.map((c) => [c.id, c]))
   const holiday = holidayName(selectedDate)
 
   return (
@@ -84,6 +108,49 @@ export function DayDetailPanel({
           )
         })}
       </div>
+
+      {servicios.length > 0 && (
+        <div className={styles.movements}>
+          <span className={styles.movementsTitle}>Vencimientos</span>
+          {servicios.map(({ service, period, estado }) => (
+            <div key={period.id} className={`${styles.vencimiento} ${ESTADO_CLASS[estado]}`}>
+              <span className={styles.vencimientoIcon}>
+                <ReceiptIcon width={16} height={16} />
+              </span>
+              <div className={styles.vencimientoBody}>
+                <span className={styles.vencimientoTitle}>{service.name}</span>
+                <span className={styles.vencimientoAmount}>{formatCurrency(period.amount)}</span>
+              </div>
+              {estado !== 'pendiente' && (
+                <span className={styles.vencimientoEstado}>{ESTADO_LABEL[estado]}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {movements.length > 0 && (
+        <div className={styles.movements}>
+          <span className={styles.movementsTitle}>Movimientos</span>
+          {movements.map((movement) => {
+            const financeCategory = financeCategoryById.get(movement.categoryId)
+            const esNegativo = movement.type === 'gasto'
+            return (
+              <div key={movement.id} className={styles.movementItem}>
+                <span
+                  className={styles.movementBar}
+                  style={{ background: financeCategory?.color ?? '#64748b' }}
+                />
+                <span className={styles.movementTitle}>{movement.title}</span>
+                <span className={esNegativo ? styles.movementAmountGasto : styles.movementAmount}>
+                  {esNegativo ? '-' : '+'}
+                  {formatCurrency(movement.amount)}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

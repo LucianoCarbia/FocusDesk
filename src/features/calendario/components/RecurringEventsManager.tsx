@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Category } from '../../../domain/calendario/Category'
 import type { RecurringEvent } from '../../../domain/calendario/RecurringEvent'
+import type { FinanceCategory } from '../../../domain/finanzas/FinanceCategory'
 import { CloseIcon, PencilIcon, PlusIcon, TrashIcon } from '../../../components/icons/Icons'
 import {
   actualizarHorarioFijo,
@@ -17,6 +18,7 @@ const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 interface RecurringEventsManagerProps {
   categories: Category[]
+  financeCategories: FinanceCategory[]
   onClose: () => void
   onChange: () => void
 }
@@ -29,7 +31,12 @@ function formatRange(startDate: string, endDate: string | null): string {
   return endDate ? `${startDate} → ${endDate}` : `desde ${startDate}, sin fin`
 }
 
-export function RecurringEventsManager({ categories, onClose, onChange }: RecurringEventsManagerProps) {
+export function RecurringEventsManager({
+  categories,
+  financeCategories,
+  onClose,
+  onChange,
+}: RecurringEventsManagerProps) {
   const [items, setItems] = useState<RecurringEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -134,6 +141,7 @@ export function RecurringEventsManager({ categories, onClose, onChange }: Recurr
           initialDate={new Date()}
           editingEvent={editingEvent}
           categories={categories}
+          financeCategories={financeCategories}
           onClose={() => setFormOpen(false)}
           onSubmit={async (input) => {
             if (editingEvent) {

@@ -5,6 +5,8 @@ export interface RecurringEventSkip {
   endDate: string
 }
 
+import type { MovementType } from '../shared/MovementType'
+
 export interface RecurringEvent {
   id: string
   title: string
@@ -17,6 +19,9 @@ export interface RecurringEvent {
   startDate: string
   endDate: string | null // null = indefinido
   skipHolidays: boolean
+  amount: number | null
+  movementType: MovementType | null
+  financeCategoryId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +37,9 @@ export interface NewRecurringEvent {
   startDate: string
   endDate: string | null
   skipHolidays: boolean
+  amount: number | null
+  movementType: MovementType | null
+  financeCategoryId: string | null
 }
 
 export type RecurringEventUpdate = NewRecurringEvent
