@@ -1,0 +1,132 @@
+.strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  flex: 0 0 220px;
+  min-height: 160px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  scroll-snap-align: start;
+}
+
+.today {
+  border-color: var(--accent);
+}
+
+.selected {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.dayHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.weekday {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.dayNumber {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.event {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  padding-left: 10px;
+}
+
+.eventBar {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 2px;
+  width: 3px;
+  border-radius: 999px;
+}
+
+.eventBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eventTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.25;
+}
+
+.eventTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  .strip {
+    overflow-x: visible;
+  }
+
+  .day {
+    flex: 1 1 0;
+  }
+}

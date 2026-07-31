@@ -5,6 +5,42 @@
   max-width: 960px;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.date {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.bellButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.bellDot {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--danger);
+}
+
 .summaryCard {
   display: flex;
   align-items: center;
@@ -102,16 +138,27 @@
 }
 
 .agendaItem {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px;
+  padding: 16px 16px 16px 20px;
   border-radius: 14px;
-  background: var(--accent-bg);
+  overflow: hidden;
+}
+
+.agendaBar {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0;
+  width: 4px;
 }
 
 .agendaTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
   color: var(--text-h);
 }
@@ -123,6 +170,22 @@
   font-size: 13px;
   color: var(--text);
   white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+}
+
+.loading {
+  margin: 0;
+  color: var(--text);
 }
 
 .footer {
