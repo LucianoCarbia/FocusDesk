@@ -1,0 +1,24 @@
+export interface CalendarEvent {
+  id: string
+  title: string
+  categoryId: string
+  date: string
+  startTime: string | null
+  endTime: string | null
+  location: string | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NewCalendarEvent {
+  title: string
+  categoryId: string
+  date: string
+  startTime: string | null
+  endTime: string | null
+  location: string | null
+  notes: string | null
+}
+
+export type CalendarEventUpdate = NewCalendarEvent

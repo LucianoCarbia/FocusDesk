@@ -1,0 +1,98 @@
+.card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  text-transform: capitalize;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: none;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekdayHeader {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  padding-bottom: 6px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-h);
+  font: inherit;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.faded {
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.holiday {
+  color: var(--danger);
+}
+
+.today {
+  border: 1px solid var(--accent);
+}
+
+.selected {
+  background: var(--accent);
+  color: white;
+}
+
+.cellNumber {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cellDots {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cellDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+}

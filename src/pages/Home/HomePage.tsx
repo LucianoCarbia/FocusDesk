@@ -1,18 +1,17 @@
-import type { AgendaItem } from '../../types/agenda'
-import { ClockIcon, DollarIcon, SparkleIcon, WalletIcon } from '../../components/icons/Icons'
+import type { Category } from '../../domain/calendario/Category'
+import type { AgendaEntry } from '../../domain/calendario/occurrences'
+import { BellIcon, ClockIcon, DollarIcon, RepeatIcon, SparkleIcon, WalletIcon } from '../../components/icons/Icons'
+import { useHomeAgenda } from '../../features/home/hooks/useHomeAgenda'
 import styles from './HomePage.module.css'
 
-// TODO: reemplazar por datos reales cuando existan los módulos Calendario y Finanzas.
+const today = new Intl.DateTimeFormat('es-AR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+}).format(new Date())
+
+// TODO: reemplazar por datos reales cuando exista el módulo Finanzas.
 const saldoDisponible = 396300
-
-const eventosHoy: AgendaItem[] = [
-  { id: '1', title: 'Trabajo - Turno mañana', time: '08:00 hs', category: 'trabajo' },
-  { id: '2', title: 'Cursada Análisis Matemático', time: '18:00 hs', category: 'facultad' },
-]
-
-const eventosManiana: AgendaItem[] = [
-  { id: '3', title: 'Turno Dentista', time: '10:00 hs', category: 'turno' },
-]
 
 const currencyFormatter = new Intl.NumberFormat('es-AR', {
   style: 'currency',
@@ -20,7 +19,15 @@ const currencyFormatter = new Intl.NumberFormat('es-AR', {
   maximumFractionDigits: 0,
 })
 
-function AgendaSection({ title, items }: { title: string; items: AgendaItem[] }) {
+interface AgendaSectionProps {
+  title: string
+  items: AgendaEntry[]
+  categories: Category[]
+}
+
+function AgendaSection({ title, items, categories }: AgendaSectionProps) {
+  const categoryById = new Map(categories.map((c) => [c.id, c]))
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
@@ -29,23 +36,45 @@ function AgendaSection({ title, items }: { title: string; items: AgendaItem[] })
       </div>
 
       <div className={styles.agendaList}>
-        {items.map((item) => (
-          <div key={item.id} className={styles.agendaItem} data-category={item.category}>
-            <span className={styles.agendaTitle}>{item.title}</span>
-            <span className={styles.agendaTime}>
-              <ClockIcon />
-              {item.time}
-            </span>
-          </div>
-        ))}
+        {items.length === 0 && <p className={styles.empty}>Sin eventos.</p>}
+
+        {items.map((item) => {
+          const category = categoryById.get(item.categoryId)
+          return (
+            <div key={item.id} className={styles.agendaItem} style={{ background: `${category?.color}1a` }}>
+              <span className={styles.agendaBar} style={{ background: category?.color }} />
+              <span className={styles.agendaTitle}>
+                {item.source === 'recurring' && <RepeatIcon />}
+                {item.title}
+              </span>
+              {item.startTime && (
+                <span className={styles.agendaTime}>
+                  <ClockIcon />
+                  {item.startTime} hs
+                </span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </section>
   )
 }
 
 export function HomePage() {
+  const formattedToday = today.charAt(0).toUpperCase() + today.slice(1)
+  const { categories, eventosHoy, eventosManiana, loading, error } = useHomeAgenda()
+
   return (
     <div className={styles.home}>
+      <header className={styles.header}>
+        <span className={styles.date}>{formattedToday}</span>
+        <button type="button" className={styles.bellButton} aria-label="Notificaciones">
+          <BellIcon />
+          <span className={styles.bellDot} aria-hidden="true" />
+        </button>
+      </header>
+
       <section className={styles.summaryCard}>
         <span className={styles.summaryIcon} aria-hidden="true">
           <WalletIcon />
@@ -59,8 +88,11 @@ export function HomePage() {
         </span>
       </section>
 
-      <AgendaSection title="Hoy" items={eventosHoy} />
-      <AgendaSection title="Mañana" items={eventosManiana} />
+      {error && <p className={styles.error}>{error}</p>}
+      {loading && <p className={styles.loading}>Cargando…</p>}
+
+      <AgendaSection title="Hoy" items={eventosHoy} categories={categories} />
+      <AgendaSection title="Mañana" items={eventosManiana} categories={categories} />
 
       <footer className={styles.footer}>
         <SparkleIcon />
