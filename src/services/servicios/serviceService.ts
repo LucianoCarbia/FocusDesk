@@ -3,15 +3,12 @@ import { ServiceRepository } from '../../database/repositories/ServiceRepository
 import { calcularEstado, siguienteVencimiento, type EstadoServicio } from '../../domain/servicios/estado'
 import type { Service, ServiceFrequency } from '../../domain/servicios/Service'
 import type { ServicePeriod } from '../../domain/servicios/ServicePeriod'
-import type { Currency } from '../../domain/shared/Currency'
-import { formatCurrency, formatUsd } from '../../utils/currency'
 import { toISODate } from '../../utils/date'
 import { crearMovimiento } from '../finanzas/movementService'
 
 export interface ServiceFormInput {
   name: string
   amount: number
-  currency: Currency
   firstDueDate: string
   frequency: ServiceFrequency
   customIntervalDays: number | null
@@ -33,8 +30,6 @@ function validar(input: ServiceFormInput) {
   }
 }
 
-// El período congela moneda e importe del servicio al momento de crearse, para que
-// un cambio posterior en el servicio (ej. ARS -> USD) no altere períodos ya generados o pagados.
 async function asegurarPeriodoVigente(service: Service, periodsDelServicio: ServicePeriod[]): Promise<ServicePeriod> {
   const ultimo = periodsDelServicio[periodsDelServicio.length - 1]
 
@@ -44,19 +39,15 @@ async function asegurarPeriodoVigente(service: Service, periodsDelServicio: Serv
       serviceId: service.id,
       dueDate: service.firstDueDate,
       amount: service.amount,
-      currency: service.currency,
     })
     return {
       id,
       serviceId: service.id,
       dueDate: service.firstDueDate,
       amount: service.amount,
-      currency: service.currency,
       paid: false,
       paidAt: null,
       movementId: null,
-      exchangeRate: null,
-      paidAmountArs: null,
       createdAt: new Date().toISOString(),
     }
   }
@@ -65,23 +56,15 @@ async function asegurarPeriodoVigente(service: Service, periodsDelServicio: Serv
 
   const dueDate = siguienteVencimiento(service, ultimo.dueDate)
   const id = crypto.randomUUID()
-  await ServicePeriodRepository.create(id, {
-    serviceId: service.id,
-    dueDate,
-    amount: service.amount,
-    currency: service.currency,
-  })
+  await ServicePeriodRepository.create(id, { serviceId: service.id, dueDate, amount: service.amount })
   return {
     id,
     serviceId: service.id,
     dueDate,
     amount: service.amount,
-    currency: service.currency,
     paid: false,
     paidAt: null,
     movementId: null,
-    exchangeRate: null,
-    paidAmountArs: null,
     createdAt: new Date().toISOString(),
   }
 }
@@ -109,7 +92,6 @@ export async function crearServicio(input: ServiceFormInput): Promise<void> {
   await ServiceRepository.create(id, {
     name: input.name.trim(),
     amount: input.amount,
-    currency: input.currency,
     firstDueDate: input.firstDueDate,
     frequency: input.frequency,
     customIntervalDays: input.frequency === 'personalizada' ? input.customIntervalDays : null,
@@ -120,7 +102,6 @@ export async function crearServicio(input: ServiceFormInput): Promise<void> {
     serviceId: id,
     dueDate: input.firstDueDate,
     amount: input.amount,
-    currency: input.currency,
   })
 }
 
@@ -129,7 +110,6 @@ export async function actualizarServicio(id: string, input: ServiceFormInput): P
   await ServiceRepository.update(id, {
     name: input.name.trim(),
     amount: input.amount,
-    currency: input.currency,
     firstDueDate: input.firstDueDate,
     frequency: input.frequency,
     customIntervalDays: input.frequency === 'personalizada' ? input.customIntervalDays : null,
@@ -139,7 +119,7 @@ export async function actualizarServicio(id: string, input: ServiceFormInput): P
   const periods = await ServicePeriodRepository.findAll()
   const vigente = periods.filter((p) => p.serviceId === id).at(-1)
   if (vigente && !vigente.paid) {
-    await ServicePeriodRepository.update(vigente.id, input.firstDueDate, input.amount, input.currency)
+    await ServicePeriodRepository.update(vigente.id, input.firstDueDate, input.amount)
   }
 }
 
@@ -148,34 +128,21 @@ export async function eliminarServicio(id: string): Promise<void> {
   await ServiceRepository.delete(id)
 }
 
-export async function marcarComoPagado(periodId: string, exchangeRate: number | null = null): Promise<void> {
+export async function marcarComoPagado(periodId: string): Promise<void> {
   const [services, periods] = await Promise.all([ServiceRepository.findAll(), ServicePeriodRepository.findAll()])
   const period = periods.find((p) => p.id === periodId)
   if (!period) throw new Error('El vencimiento no existe')
   const service = services.find((s) => s.id === period.serviceId)
   if (!service) throw new Error('El servicio no existe')
 
-  let amountArs = period.amount
-  let rate: number | null = null
-  let notes: string | null = null
-
-  if (period.currency === 'USD') {
-    if (exchangeRate == null || !Number.isFinite(exchangeRate) || exchangeRate <= 0) {
-      throw new Error('Indicá la cotización del dólar para registrar el pago')
-    }
-    rate = exchangeRate
-    amountArs = Math.round(period.amount * rate * 100) / 100 // evita arrastrar decimales de punto flotante
-    notes = `${formatUsd(period.amount)} × ${formatCurrency(rate)}`
-  }
-
   const movementId = await crearMovimiento({
     type: 'gasto',
     title: service.name,
-    amount: amountArs,
+    amount: period.amount,
     categoryName: 'Servicios',
     date: period.dueDate,
-    notes,
+    notes: null,
   })
 
-  await ServicePeriodRepository.markAsPaid(period.id, toISODate(new Date()), movementId, amountArs, rate)
+  await ServicePeriodRepository.markAsPaid(period.id, toISODate(new Date()), movementId)
 }
