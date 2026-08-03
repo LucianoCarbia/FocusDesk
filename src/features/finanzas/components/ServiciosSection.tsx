@@ -1,8 +1,9 @@
 import type { Service } from '../../../domain/servicios/Service'
 import type { EstadoServicio } from '../../../domain/servicios/estado'
+import { calcularTotalMensual } from '../../../domain/servicios/totales'
 import { PencilIcon, ReceiptIcon, TrashIcon } from '../../../components/icons/Icons'
 import type { ServicioConEstado } from '../../../services/servicios/serviceService'
-import { formatCurrency } from '../../../utils/currency'
+import { formatAmount, formatCurrency, formatUsd } from '../../../utils/currency'
 import { toISODate } from '../../../utils/date'
 import styles from './ServiciosSection.module.css'
 
@@ -12,7 +13,7 @@ interface ServiciosSectionProps {
   error: string | null
   onEdit: (item: ServicioConEstado) => void
   onDelete: (service: Service) => void
-  onPagar: (periodId: string) => void
+  onPagar: (item: ServicioConEstado) => void
 }
 
 const dateFormatter = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
@@ -38,9 +39,10 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
   const mesActual = toISODate(new Date()).slice(0, 7)
   const vencidos = items.filter((i) => i.estado === 'vencido').length
   const pagados = items.filter((i) => i.estado === 'pagado').length
-  const totalMensual = items
-    .filter((i) => i.period.dueDate.slice(0, 7) === mesActual)
-    .reduce((sum, i) => sum + i.period.amount, 0)
+  const { ars: totalMensual, usdPendiente } = calcularTotalMensual(
+    items.map((i) => i.period),
+    mesActual,
+  )
 
   return (
     <section className={styles.card}>
@@ -74,6 +76,9 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
             <span>Total mensual comprometido</span>
             <span className={styles.totalValue}>{formatCurrency(totalMensual)}</span>
           </div>
+          {usdPendiente > 0 && (
+            <p className={styles.totalHint}>+ {formatUsd(usdPendiente)} pendientes de cotización</p>
+          )}
 
           <div className={styles.list}>
             {items.map((item) => (
@@ -86,7 +91,12 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
                 </div>
 
                 <div className={styles.itemBody}>
-                  <span className={styles.itemAmount}>{formatCurrency(item.period.amount)}</span>
+                  <span className={styles.itemAmount}>
+                    {formatAmount(item.period.amount, item.period.currency)}
+                    {item.period.paid && item.period.paidAmountArs != null && item.period.currency === 'USD' && (
+                      <span className={styles.itemAmountArs}> ({formatCurrency(item.period.paidAmountArs)})</span>
+                    )}
+                  </span>
                   <span className={styles.itemDate}>Vence {formatDueDate(item.period.dueDate)}</span>
                 </div>
 
@@ -95,7 +105,7 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
                     <button
                       type="button"
                       className={styles.payButton}
-                      onClick={() => onPagar(item.period.id)}
+                      onClick={() => onPagar(item)}
                     >
                       Marcar como pagado
                     </button>

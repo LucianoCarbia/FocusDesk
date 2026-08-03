@@ -201,6 +201,20 @@ fn migrations() -> Vec<Migration> {
                     ('fc-retiro-ahorro', 'Retiro de ahorro', 'ingreso', 'dollar', '#0ea5e9', datetime('now'));
             ",
         },
+        Migration {
+            version: 7,
+            description: "add_currency_to_services",
+            kind: MigrationKind::Up,
+            sql: "
+                ALTER TABLE services ADD COLUMN currency TEXT NOT NULL DEFAULT 'ARS';
+
+                ALTER TABLE service_periods ADD COLUMN currency TEXT NOT NULL DEFAULT 'ARS';
+                ALTER TABLE service_periods ADD COLUMN exchange_rate REAL;
+                ALTER TABLE service_periods ADD COLUMN paid_amount_ars REAL;
+
+                UPDATE service_periods SET paid_amount_ars = amount WHERE paid = 1;
+            ",
+        },
     ]
 }
 

@@ -89,5 +89,6 @@ export function useFinanzasData() {
     agregarMovimiento,
     editarMovimiento,
     borrarMovimiento,
+    recargarMovimientos: recargar,
   }
 }
