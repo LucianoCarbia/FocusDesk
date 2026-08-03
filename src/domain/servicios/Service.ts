@@ -1,9 +1,12 @@
+import type { Currency } from '../shared/Currency'
+
 export type ServiceFrequency = 'mensual' | 'anual' | 'personalizada'
 
 export interface Service {
   id: string
   name: string
   amount: number
+  currency: Currency
   firstDueDate: string
   frequency: ServiceFrequency
   customIntervalDays: number | null
@@ -15,6 +18,7 @@ export interface Service {
 export interface NewService {
   name: string
   amount: number
+  currency: Currency
   firstDueDate: string
   frequency: ServiceFrequency
   customIntervalDays: number | null

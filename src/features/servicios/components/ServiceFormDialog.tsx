@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Service, ServiceFrequency } from '../../../domain/servicios/Service'
 import type { ServicePeriod } from '../../../domain/servicios/ServicePeriod'
+import type { Currency } from '../../../domain/shared/Currency'
 import type { ServiceFormInput } from '../../../services/servicios/serviceService'
 import { CloseIcon, TrashIcon } from '../../../components/icons/Icons'
 import { toISODate } from '../../../utils/date'
@@ -21,6 +22,11 @@ const FRECUENCIAS: { value: ServiceFrequency; label: string }[] = [
   { value: 'personalizada', label: 'Personalizada' },
 ]
 
+const MONEDAS: { value: Currency; label: string }[] = [
+  { value: 'ARS', label: 'Pesos' },
+  { value: 'USD', label: 'Dólares' },
+]
+
 export function ServiceFormDialog({
   editingService,
   editingPeriod,
@@ -29,6 +35,9 @@ export function ServiceFormDialog({
   onDelete,
 }: ServiceFormDialogProps) {
   const [name, setName] = useState(editingService?.name ?? '')
+  const [currency, setCurrency] = useState<Currency>(
+    editingPeriod?.currency ?? editingService?.currency ?? 'ARS',
+  )
   const [amount, setAmount] = useState(
     editingService ? String(editingPeriod?.amount ?? editingService.amount) : '',
   )
@@ -51,6 +60,7 @@ export function ServiceFormDialog({
       await onSubmit({
         name,
         amount: Number(amount),
+        currency,
         firstDueDate: dueDate,
         frequency,
         customIntervalDays: frequency === 'personalizada' ? Number(customIntervalDays) : null,
@@ -93,8 +103,24 @@ export function ServiceFormDialog({
             <input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
           </label>
 
+          <div className={styles.field}>
+            <span>Moneda</span>
+            <div className={styles.currencyTabs}>
+              {MONEDAS.map((m) => (
+                <button
+                  key={m.value}
+                  type="button"
+                  className={m.value === currency ? styles.freqTabActive : styles.freqTab}
+                  onClick={() => setCurrency(m.value)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <label className={styles.field}>
-            <span>Importe</span>
+            <span>Importe {currency === 'USD' ? '(USD)' : '(ARS)'}</span>
             <input
               type="number"
               min="0.01"
@@ -103,6 +129,7 @@ export function ServiceFormDialog({
               onChange={(e) => setAmount(e.target.value)}
               required
             />
+            {currency === 'USD' && <p className={styles.hint}>La cotización se pide al marcar el pago.</p>}
           </label>
 
           <label className={styles.field}>
