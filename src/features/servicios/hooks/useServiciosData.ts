@@ -48,8 +48,8 @@ export function useServiciosData() {
     await cargar()
   }
 
-  async function pagar(periodId: string) {
-    await marcarComoPagado(periodId)
+  async function pagar(periodId: string, exchangeRate: number | null = null) {
+    await marcarComoPagado(periodId, exchangeRate)
     await cargar()
   }
 

@@ -1,29 +1,28 @@
-import { useState } from 'react'
+import type { AvisoServicio } from '../../../domain/servicios/avisos'
 import { AlertTriangleIcon } from '../../../components/icons/Icons'
-import { toErrorMessage } from '../../../utils/errors'
+import { PagoServicioDialog } from '../../servicios/components/PagoServicioDialog'
+import { usePagoServicio } from '../../servicios/hooks/usePagoServicio'
 import { useAvisosServicios } from '../hooks/useAvisosServicios'
 import styles from './AvisosServicios.module.css'
 
 export function AvisosServicios() {
   const { avisos, loading, error, pagar } = useAvisosServicios()
-  const [procesando, setProcesando] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
+  const { pendiente, procesando, error: actionError, solicitarPago, confirmarCotizacion, cancelar } =
+    usePagoServicio(pagar)
 
   if (loading || avisos.length === 0) return null
 
   const vencidos = avisos.filter((a) => a.diasRestantes < 0)
   const proximos = avisos.filter((a) => a.diasRestantes >= 0)
 
-  async function handlePagar(periodId: string) {
-    setProcesando(periodId)
-    setActionError(null)
-    try {
-      await pagar(periodId)
-    } catch (err) {
-      setActionError(toErrorMessage(err))
-    } finally {
-      setProcesando(null)
-    }
+  function pagarAviso(aviso: AvisoServicio) {
+    void solicitarPago({
+      periodId: aviso.periodId,
+      serviceName: aviso.name,
+      amount: aviso.amount,
+      currency: aviso.currency,
+      dueDate: aviso.dueDate,
+    })
   }
 
   return (
@@ -49,7 +48,7 @@ export function AvisosServicios() {
                   type="button"
                   className={styles.payButton}
                   disabled={procesando === aviso.periodId}
-                  onClick={() => handlePagar(aviso.periodId)}
+                  onClick={() => pagarAviso(aviso)}
                 >
                   Pagar
                 </button>
@@ -68,13 +67,22 @@ export function AvisosServicios() {
                 type="button"
                 className={styles.payButton}
                 disabled={procesando === aviso.periodId}
-                onClick={() => handlePagar(aviso.periodId)}
+                onClick={() => pagarAviso(aviso)}
               >
                 Pagar
               </button>
             </div>
           ))}
         </div>
+      )}
+
+      {pendiente && (
+        <PagoServicioDialog
+          serviceName={pendiente.serviceName}
+          usdAmount={pendiente.amount}
+          onClose={cancelar}
+          onConfirm={confirmarCotizacion}
+        />
       )}
     </section>
   )

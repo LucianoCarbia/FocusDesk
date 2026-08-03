@@ -37,5 +37,12 @@ dist-ssr/
 .eslintcache
 .pnpm-store/
 
+# Base de datos local (nunca debe vivir dentro del repo)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Claude Code
 CLAUDE.md

@@ -6,7 +6,7 @@ import type { Movement } from '../../../domain/finanzas/Movement'
 import type { EstadoServicio } from '../../../domain/servicios/estado'
 import { PencilIcon, PlusIcon, ReceiptIcon, RepeatIcon, TrashIcon, XCircleIcon } from '../../../components/icons/Icons'
 import type { ServicioConEstado } from '../../../services/servicios/serviceService'
-import { formatCurrency } from '../../../utils/currency'
+import { formatAmount, formatCurrency } from '../../../utils/currency'
 import { formatFullDate } from '../../../utils/date'
 import styles from './DayDetailPanel.module.css'
 
@@ -119,7 +119,7 @@ export function DayDetailPanel({
               </span>
               <div className={styles.vencimientoBody}>
                 <span className={styles.vencimientoTitle}>{service.name}</span>
-                <span className={styles.vencimientoAmount}>{formatCurrency(period.amount)}</span>
+                <span className={styles.vencimientoAmount}>{formatAmount(period.amount, period.currency)}</span>
               </div>
               {estado !== 'pendiente' && (
                 <span className={styles.vencimientoEstado}>{ESTADO_LABEL[estado]}</span>
