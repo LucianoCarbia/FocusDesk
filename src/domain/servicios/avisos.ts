@@ -1,5 +1,4 @@
-import type { Currency } from '../shared/Currency'
-import { formatAmount } from '../../utils/currency'
+import { formatCurrency } from '../../utils/currency'
 import { toISODate } from '../../utils/date'
 import type { Service } from './Service'
 import type { ServicePeriod } from './ServicePeriod'
@@ -9,7 +8,6 @@ export interface AvisoServicio {
   periodId: string
   name: string
   amount: number
-  currency: Currency
   dueDate: string
   diasRestantes: number
   mensaje: string
@@ -25,8 +23,8 @@ function diasEntre(desde: Date, hasta: Date): number {
   return Math.round((hasta.getTime() - desde.getTime()) / MS_POR_DIA)
 }
 
-function armarMensaje(name: string, amount: number, currency: Currency, diasRestantes: number): string {
-  const monto = formatAmount(amount, currency)
+function armarMensaje(name: string, amount: number, diasRestantes: number): string {
+  const monto = formatCurrency(amount)
   if (diasRestantes < 0) return `Pago vencido: ${name} — ${monto}`
   if (diasRestantes === 0) return `Hoy tenés que pagar ${name} — ${monto}`
   if (diasRestantes === 1) return `Mañana tenés que pagar ${name} — ${monto}`
@@ -50,10 +48,9 @@ export function calcularAvisos(
       periodId: period.id,
       name: service.name,
       amount: period.amount,
-      currency: period.currency,
       dueDate: period.dueDate,
       diasRestantes,
-      mensaje: armarMensaje(service.name, period.amount, period.currency, diasRestantes),
+      mensaje: armarMensaje(service.name, period.amount, diasRestantes),
     })
   }
 

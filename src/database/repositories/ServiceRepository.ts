@@ -1,12 +1,10 @@
 import { getDb } from '../db'
 import type { NewService, Service, ServiceFrequency, ServiceUpdate } from '../../domain/servicios/Service'
-import type { Currency } from '../../domain/shared/Currency'
 
 interface ServiceRow {
   id: string
   name: string
   amount: number
-  currency: Currency
   first_due_date: string
   frequency: ServiceFrequency
   custom_interval_days: number | null
@@ -20,7 +18,6 @@ function toService(row: ServiceRow): Service {
     id: row.id,
     name: row.name,
     amount: row.amount,
-    currency: row.currency,
     firstDueDate: row.first_due_date,
     frequency: row.frequency,
     customIntervalDays: row.custom_interval_days,
@@ -41,13 +38,12 @@ export const ServiceRepository = {
     const db = await getDb()
     await db.execute(
       `INSERT INTO services
-        (id, name, amount, currency, first_due_date, frequency, custom_interval_days, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, datetime('now'), datetime('now'))`,
+        (id, name, amount, first_due_date, frequency, custom_interval_days, notes, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, datetime('now'), datetime('now'))`,
       [
         id,
         service.name,
         service.amount,
-        service.currency,
         service.firstDueDate,
         service.frequency,
         service.customIntervalDays,
@@ -60,13 +56,12 @@ export const ServiceRepository = {
     const db = await getDb()
     await db.execute(
       `UPDATE services SET
-        name = $1, amount = $2, currency = $3, first_due_date = $4, frequency = $5,
-        custom_interval_days = $6, notes = $7, updated_at = datetime('now')
-       WHERE id = $8`,
+        name = $1, amount = $2, first_due_date = $3, frequency = $4,
+        custom_interval_days = $5, notes = $6, updated_at = datetime('now')
+       WHERE id = $7`,
       [
         service.name,
         service.amount,
-        service.currency,
         service.firstDueDate,
         service.frequency,
         service.customIntervalDays,

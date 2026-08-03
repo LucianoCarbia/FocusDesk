@@ -9,9 +9,7 @@ import { PendientesFinancieros } from '../../features/finanzas/components/Pendie
 import { ResumenFinanciero } from '../../features/finanzas/components/ResumenFinanciero'
 import { ServiciosSection } from '../../features/finanzas/components/ServiciosSection'
 import { useFinanzasData } from '../../features/finanzas/hooks/useFinanzasData'
-import { PagoServicioDialog } from '../../features/servicios/components/PagoServicioDialog'
 import { ServiceFormDialog } from '../../features/servicios/components/ServiceFormDialog'
-import { usePagoServicio } from '../../features/servicios/hooks/usePagoServicio'
 import { useServiciosData } from '../../features/servicios/hooks/useServiciosData'
 import type { ServicioConEstado } from '../../services/servicios/serviceService'
 import styles from './FinanzasPage.module.css'
@@ -34,7 +32,6 @@ export function FinanzasPage() {
     agregarMovimiento,
     editarMovimiento,
     borrarMovimiento,
-    recargarMovimientos,
   } = useFinanzasData()
 
   const {
@@ -46,19 +43,6 @@ export function FinanzasPage() {
     eliminar: eliminarServicio,
     pagar: pagarServicio,
   } = useServiciosData()
-
-  async function pagarServicioYRefrescar(periodId: string, exchangeRate?: number | null) {
-    await pagarServicio(periodId, exchangeRate)
-    await recargarMovimientos()
-  }
-
-  const {
-    pendiente: pagoPendiente,
-    error: pagoError,
-    solicitarPago,
-    confirmarCotizacion,
-    cancelar: cancelarPago,
-  } = usePagoServicio(pagarServicioYRefrescar)
 
   const [registerMenuOpen, setRegisterMenuOpen] = useState(false)
 
@@ -134,22 +118,13 @@ export function FinanzasPage() {
 
       <PendientesFinancieros />
       <ResumenFinanciero resumen={resumen} />
-      {pagoError && <p className={styles.error}>{pagoError}</p>}
       <ServiciosSection
         items={servicios}
         loading={loadingServicios}
         error={errorServicios}
         onEdit={openEditServiceDialog}
         onDelete={(service) => eliminarServicio(service.id)}
-        onPagar={(item) =>
-          void solicitarPago({
-            periodId: item.period.id,
-            serviceName: item.service.name,
-            amount: item.period.amount,
-            currency: item.period.currency,
-            dueDate: item.period.dueDate,
-          })
-        }
+        onPagar={(periodId) => pagarServicio(periodId)}
       />
       <GastosPorCategoria gastos={gastosPorCategoria} />
       <HistorialMovimientos
@@ -186,15 +161,6 @@ export function FinanzasPage() {
             editingServiceItem ? actualizarServicio(editingServiceItem.service.id, input) : crearServicio(input)
           }
           onDelete={(service) => eliminarServicio(service.id)}
-        />
-      )}
-
-      {pagoPendiente && (
-        <PagoServicioDialog
-          serviceName={pagoPendiente.serviceName}
-          usdAmount={pagoPendiente.amount}
-          onClose={cancelarPago}
-          onConfirm={confirmarCotizacion}
         />
       )}
     </div>
