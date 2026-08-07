@@ -9,11 +9,17 @@ import { PendientesFinancieros } from '../../features/finanzas/components/Pendie
 import { ResumenFinanciero } from '../../features/finanzas/components/ResumenFinanciero'
 import { ServiciosSection } from '../../features/finanzas/components/ServiciosSection'
 import { useFinanzasData } from '../../features/finanzas/hooks/useFinanzasData'
+import { NuevoServicioDialog } from '../../features/servicios/components/NuevoServicioDialog'
 import { PagoServicioDialog } from '../../features/servicios/components/PagoServicioDialog'
+import { PagoServicioMensualDialog } from '../../features/servicios/components/PagoServicioMensualDialog'
 import { ServiceFormDialog } from '../../features/servicios/components/ServiceFormDialog'
+import { ServicioMensualFormDialog } from '../../features/servicios/components/ServicioMensualFormDialog'
 import { usePagoServicio } from '../../features/servicios/hooks/usePagoServicio'
+import { usePagoServicioMensual } from '../../features/servicios/hooks/usePagoServicioMensual'
 import { useServiciosData } from '../../features/servicios/hooks/useServiciosData'
+import { useServiciosMensualesData } from '../../features/servicios/hooks/useServiciosMensualesData'
 import type { ServicioConEstado } from '../../services/servicios/serviceService'
+import type { ServicioMensualConEstado } from '../../services/servicios/servicioMensualService'
 import styles from './FinanzasPage.module.css'
 
 export function FinanzasPage() {
@@ -60,13 +66,42 @@ export function FinanzasPage() {
     cancelar: cancelarPago,
   } = usePagoServicio(pagarServicioYRefrescar)
 
+  const {
+    items: serviciosMensuales,
+    loading: loadingServiciosMensuales,
+    error: errorServiciosMensuales,
+    crear: crearServicioMensual,
+    actualizar: actualizarServicioMensual,
+    eliminar: eliminarServicioMensual,
+    pagar: pagarServicioMensual,
+  } = useServiciosMensualesData()
+
+  async function pagarServicioMensualYRefrescar(servicioMensualId: string, monto: number, exchangeRate?: number | null) {
+    await pagarServicioMensual(servicioMensualId, monto, exchangeRate)
+    await recargarMovimientos()
+  }
+
+  const {
+    pendiente: pagoMensualPendiente,
+    solicitarPago: solicitarPagoMensual,
+    confirmarPago: confirmarPagoMensual,
+    cancelar: cancelarPagoMensual,
+  } = usePagoServicioMensual(pagarServicioMensualYRefrescar)
+
   const [registerMenuOpen, setRegisterMenuOpen] = useState(false)
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingMovement, setEditingMovement] = useState<Movement | null>(null)
 
+  const [nuevoServicioDialogOpen, setNuevoServicioDialogOpen] = useState(false)
+
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false)
   const [editingServiceItem, setEditingServiceItem] = useState<ServicioConEstado | null>(null)
+
+  const [servicioMensualDialogOpen, setServicioMensualDialogOpen] = useState(false)
+  const [editingServicioMensualItem, setEditingServicioMensualItem] = useState<ServicioMensualConEstado | null>(
+    null,
+  )
 
   function openNewMovementDialog() {
     setEditingMovement(null)
@@ -79,15 +114,19 @@ export function FinanzasPage() {
     setDialogOpen(true)
   }
 
-  function openNewServiceDialog() {
-    setEditingServiceItem(null)
-    setServiceDialogOpen(true)
+  function openNuevoServicioDialog() {
+    setNuevoServicioDialogOpen(true)
     setRegisterMenuOpen(false)
   }
 
   function openEditServiceDialog(item: ServicioConEstado) {
     setEditingServiceItem(item)
     setServiceDialogOpen(true)
+  }
+
+  function openEditServicioMensualDialog(item: ServicioMensualConEstado) {
+    setEditingServicioMensualItem(item)
+    setServicioMensualDialogOpen(true)
   }
 
   return (
@@ -110,7 +149,7 @@ export function FinanzasPage() {
                 <button type="button" className={styles.menuItem} onClick={openNewMovementDialog}>
                   Ingreso, gasto o ahorro
                 </button>
-                <button type="button" className={styles.menuItem} onClick={openNewServiceDialog}>
+                <button type="button" className={styles.menuItem} onClick={openNuevoServicioDialog}>
                   Servicio
                 </button>
               </div>
@@ -137,8 +176,9 @@ export function FinanzasPage() {
       {pagoError && <p className={styles.error}>{pagoError}</p>}
       <ServiciosSection
         items={servicios}
-        loading={loadingServicios}
-        error={errorServicios}
+        itemsMensuales={serviciosMensuales}
+        loading={loadingServicios || loadingServiciosMensuales}
+        error={errorServicios ?? errorServiciosMensuales}
         onEdit={openEditServiceDialog}
         onDelete={(service) => eliminarServicio(service.id)}
         onPagar={(item) =>
@@ -148,6 +188,17 @@ export function FinanzasPage() {
             amount: item.period.amount,
             currency: item.period.currency,
             dueDate: item.period.dueDate,
+          })
+        }
+        onEditMensual={openEditServicioMensualDialog}
+        onDeleteMensual={(servicio) => eliminarServicioMensual(servicio.id)}
+        onPagarMensual={(item) =>
+          solicitarPagoMensual({
+            servicioMensualId: item.servicio.id,
+            serviceName: item.servicio.name,
+            ocurrencias: item.ocurrencias,
+            montoEstimado: item.montoEstimado,
+            currency: item.servicio.currency,
           })
         }
       />
@@ -176,6 +227,14 @@ export function FinanzasPage() {
         />
       )}
 
+      {nuevoServicioDialogOpen && (
+        <NuevoServicioDialog
+          onClose={() => setNuevoServicioDialogOpen(false)}
+          onSubmitFechaFija={crearServicio}
+          onSubmitMensual={crearServicioMensual}
+        />
+      )}
+
       {serviceDialogOpen && (
         <ServiceFormDialog
           key={editingServiceItem ? editingServiceItem.service.id : 'new-servicio'}
@@ -186,6 +245,31 @@ export function FinanzasPage() {
             editingServiceItem ? actualizarServicio(editingServiceItem.service.id, input) : crearServicio(input)
           }
           onDelete={(service) => eliminarServicio(service.id)}
+        />
+      )}
+
+      {servicioMensualDialogOpen && (
+        <ServicioMensualFormDialog
+          key={editingServicioMensualItem ? editingServicioMensualItem.servicio.id : 'new-servicio-mensual'}
+          editingServicio={editingServicioMensualItem?.servicio ?? null}
+          onClose={() => setServicioMensualDialogOpen(false)}
+          onSubmit={(input) =>
+            editingServicioMensualItem
+              ? actualizarServicioMensual(editingServicioMensualItem.servicio.id, input)
+              : crearServicioMensual(input)
+          }
+          onDelete={(servicio) => eliminarServicioMensual(servicio.id)}
+        />
+      )}
+
+      {pagoMensualPendiente && (
+        <PagoServicioMensualDialog
+          serviceName={pagoMensualPendiente.serviceName}
+          ocurrencias={pagoMensualPendiente.ocurrencias}
+          montoEstimado={pagoMensualPendiente.montoEstimado}
+          currency={pagoMensualPendiente.currency}
+          onClose={cancelarPagoMensual}
+          onConfirm={confirmarPagoMensual}
         />
       )}
 

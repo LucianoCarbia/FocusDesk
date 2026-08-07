@@ -26,6 +26,17 @@ export function rollingWeek(from: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => addDays(from, i))
 }
 
+/** Cuenta cuántas veces cae un día de la semana (0 = lunes … 6 = domingo) dentro de un mes calendario. */
+export function contarDiaSemanaEnMes(year: number, month: number, weekday: number): number {
+  const first = new Date(year, month, 1)
+  const last = new Date(year, month + 1, 0)
+  let count = 0
+  for (let d = first; d <= last; d = addDays(d, 1)) {
+    if ((d.getDay() + 6) % 7 === weekday) count++
+  }
+  return count
+}
+
 export interface MonthDay {
   date: Date
   isCurrentMonth: boolean

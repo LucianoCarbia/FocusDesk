@@ -1,19 +1,25 @@
 import type { Service } from '../../../domain/servicios/Service'
 import type { EstadoServicio } from '../../../domain/servicios/estado'
 import { calcularTotalMensual } from '../../../domain/servicios/totales'
+import type { ServicioMensual } from '../../../domain/servicios/ServicioMensual'
 import { PencilIcon, ReceiptIcon, TrashIcon } from '../../../components/icons/Icons'
 import type { ServicioConEstado } from '../../../services/servicios/serviceService'
+import type { ServicioMensualConEstado } from '../../../services/servicios/servicioMensualService'
 import { formatAmount, formatCurrency, formatUsd } from '../../../utils/currency'
 import { toISODate } from '../../../utils/date'
 import styles from './ServiciosSection.module.css'
 
 interface ServiciosSectionProps {
   items: ServicioConEstado[]
+  itemsMensuales: ServicioMensualConEstado[]
   loading: boolean
   error: string | null
   onEdit: (item: ServicioConEstado) => void
   onDelete: (service: Service) => void
   onPagar: (item: ServicioConEstado) => void
+  onEditMensual: (item: ServicioMensualConEstado) => void
+  onDeleteMensual: (servicio: ServicioMensual) => void
+  onPagarMensual: (item: ServicioMensualConEstado) => void
 }
 
 const dateFormatter = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
@@ -35,7 +41,18 @@ const ESTADO_CLASS: Record<EstadoServicio, string> = {
   vencido: styles.badgeVencido,
 }
 
-export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPagar }: ServiciosSectionProps) {
+export function ServiciosSection({
+  items,
+  itemsMensuales,
+  loading,
+  error,
+  onEdit,
+  onDelete,
+  onPagar,
+  onEditMensual,
+  onDeleteMensual,
+  onPagarMensual,
+}: ServiciosSectionProps) {
   const mesActual = toISODate(new Date()).slice(0, 7)
   // Solo interesa lo urgente (pagado/próximo/vencido) o lo que vence este mes; el resto
   // todavía no es relevante y solo generaría ruido (ej. pagar un servicio con vencimiento en 2 meses).
@@ -58,7 +75,7 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
 
       {error && <p className={styles.error}>{error}</p>}
       {loading && <p className={styles.loading}>Cargando…</p>}
-      {!loading && items.length === 0 && (
+      {!loading && items.length === 0 && itemsMensuales.length === 0 && (
         <p className={styles.empty}>Todavía no cargaste ningún servicio.</p>
       )}
       {!loading && items.length > 0 && itemsDelMes.length === 0 && (
@@ -127,6 +144,52 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
             ))}
           </div>
         </>
+      )}
+
+      {itemsMensuales.length > 0 && (
+        <div className={styles.list}>
+          <h3 className={styles.subheading}>Servicios mensuales</h3>
+          {itemsMensuales.map((item) => (
+            <div key={item.servicio.id} className={styles.itemCard}>
+              <div className={styles.itemHeader}>
+                <span className={styles.itemTitle}>{item.servicio.name}</span>
+                {!item.servicio.active && <span className={styles.badgePendiente}>Inactivo</span>}
+                {item.servicio.active && item.pago && <span className={styles.badgePagado}>Pagado</span>}
+              </div>
+
+              <div className={styles.itemBody}>
+                <span className={styles.itemAmount}>
+                  {formatAmount(item.pago?.amount ?? item.montoEstimado, item.servicio.currency)}
+                  {item.pago?.paidAmountArs != null && item.servicio.currency === 'USD' && (
+                    <span className={styles.itemAmountArs}> ({formatCurrency(item.pago.paidAmountArs)})</span>
+                  )}
+                </span>
+                <span className={styles.itemDate}>
+                  {item.ocurrencias} {item.ocurrencias === 1 ? 'ocurrencia' : 'ocurrencias'} este mes
+                  {!item.pago && ' · estimado'}
+                </span>
+              </div>
+
+              <div className={styles.itemActions}>
+                {item.servicio.active && !item.pago && (
+                  <button type="button" className={styles.payButton} onClick={() => onPagarMensual(item)}>
+                    Marcar como pagado
+                  </button>
+                )}
+                <button type="button" onClick={() => onEditMensual(item)} aria-label="Editar servicio mensual">
+                  <PencilIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteMensual(item.servicio)}
+                  aria-label="Eliminar servicio mensual"
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </section>
   )

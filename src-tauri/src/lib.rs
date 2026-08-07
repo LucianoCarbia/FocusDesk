@@ -233,6 +233,86 @@ fn migrations() -> Vec<Migration> {
                 CREATE INDEX idx_recurring_event_day_schedules_event ON recurring_event_day_schedules(recurring_event_id);
             ",
         },
+        Migration {
+            version: 9,
+            description: "create_monthly_services",
+            kind: MigrationKind::Up,
+            sql: "
+                CREATE TABLE monthly_services (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    days_of_week TEXT NOT NULL,
+                    amount_per_occurrence REAL NOT NULL,
+                    currency TEXT NOT NULL DEFAULT 'ARS',
+                    start_date TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE monthly_service_payments (
+                    id TEXT PRIMARY KEY,
+                    monthly_service_id TEXT NOT NULL REFERENCES monthly_services(id) ON DELETE CASCADE,
+                    month TEXT NOT NULL,
+                    occurrences INTEGER NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    paid_at TEXT NOT NULL,
+                    movement_id TEXT NOT NULL REFERENCES movements(id),
+                    exchange_rate REAL,
+                    paid_amount_ars REAL,
+                    UNIQUE(monthly_service_id, month)
+                );
+            ",
+        },
+        Migration {
+            version: 10,
+            description: "cascade_movement_deletes_for_service_payments",
+            kind: MigrationKind::Up,
+            sql: "
+                PRAGMA foreign_keys = OFF;
+
+                CREATE TABLE service_periods_new (
+                    id TEXT PRIMARY KEY,
+                    service_id TEXT NOT NULL REFERENCES services(id),
+                    due_date TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    paid INTEGER NOT NULL DEFAULT 0,
+                    paid_at TEXT,
+                    movement_id TEXT REFERENCES movements(id) ON DELETE CASCADE,
+                    created_at TEXT NOT NULL,
+                    currency TEXT NOT NULL DEFAULT 'ARS',
+                    exchange_rate REAL,
+                    paid_amount_ars REAL,
+                    UNIQUE(service_id, due_date)
+                );
+                INSERT INTO service_periods_new SELECT * FROM service_periods;
+                DROP TABLE service_periods;
+                ALTER TABLE service_periods_new RENAME TO service_periods;
+
+                CREATE INDEX idx_service_periods_due_date ON service_periods(due_date);
+                CREATE INDEX idx_service_periods_service ON service_periods(service_id);
+
+                CREATE TABLE monthly_service_payments_new (
+                    id TEXT PRIMARY KEY,
+                    monthly_service_id TEXT NOT NULL REFERENCES monthly_services(id) ON DELETE CASCADE,
+                    month TEXT NOT NULL,
+                    occurrences INTEGER NOT NULL,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    paid_at TEXT NOT NULL,
+                    movement_id TEXT NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
+                    exchange_rate REAL,
+                    paid_amount_ars REAL,
+                    UNIQUE(monthly_service_id, month)
+                );
+                INSERT INTO monthly_service_payments_new SELECT * FROM monthly_service_payments;
+                DROP TABLE monthly_service_payments;
+                ALTER TABLE monthly_service_payments_new RENAME TO monthly_service_payments;
+
+                PRAGMA foreign_keys = ON;
+            ",
+        },
     ]
 }
 

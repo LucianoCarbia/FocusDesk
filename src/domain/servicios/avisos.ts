@@ -4,6 +4,7 @@ import { toISODate } from '../../utils/date'
 import { diasHastaVencimiento } from './estado'
 import type { Service } from './Service'
 import type { ServicePeriod } from './ServicePeriod'
+import type { ServicioMensual } from './ServicioMensual'
 
 export interface AvisoServicio {
   serviceId: string
@@ -49,4 +50,30 @@ export function calcularAvisos(
   }
 
   return avisos.sort((a, b) => a.diasRestantes - b.diasRestantes)
+}
+
+export interface AvisoServicioMensual {
+  servicioMensualId: string
+  name: string
+  ocurrencias: number
+  montoEstimado: number
+  currency: Currency
+  mensaje: string
+}
+
+// Servicios mensuales sin fecha fija no tienen "días restantes": el aviso es simplemente
+// "todavía no lo pagaste este mes" mientras el servicio esté activo.
+export function calcularAvisosMensuales(
+  items: { servicio: ServicioMensual; ocurrencias: number; montoEstimado: number; pagado: boolean }[],
+): AvisoServicioMensual[] {
+  return items
+    .filter((item) => item.servicio.active && !item.pagado)
+    .map((item) => ({
+      servicioMensualId: item.servicio.id,
+      name: item.servicio.name,
+      ocurrencias: item.ocurrencias,
+      montoEstimado: item.montoEstimado,
+      currency: item.servicio.currency,
+      mensaje: `Todavía no pagaste ${item.servicio.name} este mes — ${formatAmount(item.montoEstimado, item.servicio.currency)}`,
+    }))
 }
