@@ -1,6 +1,7 @@
 import type { Currency } from '../shared/Currency'
 import { formatAmount } from '../../utils/currency'
 import { toISODate } from '../../utils/date'
+import { diasHastaVencimiento } from './estado'
 import type { Service } from './Service'
 import type { ServicePeriod } from './ServicePeriod'
 
@@ -15,16 +16,6 @@ export interface AvisoServicio {
   mensaje: string
 }
 
-function parseISODate(iso: string): Date {
-  const [year, month, day] = iso.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-function diasEntre(desde: Date, hasta: Date): number {
-  const MS_POR_DIA = 24 * 60 * 60 * 1000
-  return Math.round((hasta.getTime() - desde.getTime()) / MS_POR_DIA)
-}
-
 function armarMensaje(name: string, amount: number, currency: Currency, diasRestantes: number): string {
   const monto = formatAmount(amount, currency)
   if (diasRestantes < 0) return `Pago vencido: ${name} — ${monto}`
@@ -37,13 +28,13 @@ export function calcularAvisos(
   items: { service: Service; period: ServicePeriod }[],
   today: Date,
 ): AvisoServicio[] {
-  const todayMidnight = parseISODate(toISODate(today))
+  const todayISO = toISODate(today)
 
   const avisos: AvisoServicio[] = []
   for (const { service, period } of items) {
     if (period.paid) continue
-    const diasRestantes = diasEntre(todayMidnight, parseISODate(period.dueDate))
-    if (diasRestantes > 7) continue
+    const diasRestantes = diasHastaVencimiento(period.dueDate, todayISO)
+    if (diasRestantes > 2) continue
 
     avisos.push({
       serviceId: service.id,

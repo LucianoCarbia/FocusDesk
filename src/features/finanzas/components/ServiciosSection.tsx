@@ -25,20 +25,23 @@ function formatDueDate(iso: string): string {
 
 const ESTADO_LABEL: Record<EstadoServicio, string> = {
   pagado: 'Pagado',
-  pendiente: 'Pendiente',
+  proximo: 'Próximo a pagar',
   vencido: 'Vencido',
 }
 
 const ESTADO_CLASS: Record<EstadoServicio, string> = {
   pagado: styles.badgePagado,
-  pendiente: styles.badgePendiente,
+  proximo: styles.badgePendiente,
   vencido: styles.badgeVencido,
 }
 
 export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPagar }: ServiciosSectionProps) {
   const mesActual = toISODate(new Date()).slice(0, 7)
-  const vencidos = items.filter((i) => i.estado === 'vencido').length
-  const pagados = items.filter((i) => i.estado === 'pagado').length
+  // Solo interesa lo urgente (pagado/próximo/vencido) o lo que vence este mes; el resto
+  // todavía no es relevante y solo generaría ruido (ej. pagar un servicio con vencimiento en 2 meses).
+  const itemsDelMes = items.filter((i) => i.estado !== null || i.period.dueDate.slice(0, 7) === mesActual)
+  const vencidos = itemsDelMes.filter((i) => i.estado === 'vencido').length
+  const pagados = itemsDelMes.filter((i) => i.estado === 'pagado').length
   const { ars: totalMensual, usdPendiente } = calcularTotalMensual(
     items.map((i) => i.period),
     mesActual,
@@ -58,8 +61,11 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
       {!loading && items.length === 0 && (
         <p className={styles.empty}>Todavía no cargaste ningún servicio.</p>
       )}
+      {!loading && items.length > 0 && itemsDelMes.length === 0 && (
+        <p className={styles.empty}>No tenés servicios que venzan este mes.</p>
+      )}
 
-      {items.length > 0 && (
+      {itemsDelMes.length > 0 && (
         <>
           <div className={styles.stats}>
             <div className={styles.stat}>
@@ -81,11 +87,11 @@ export function ServiciosSection({ items, loading, error, onEdit, onDelete, onPa
           )}
 
           <div className={styles.list}>
-            {items.map((item) => (
+            {itemsDelMes.map((item) => (
               <div key={item.service.id} className={styles.itemCard}>
                 <div className={styles.itemHeader}>
                   <span className={styles.itemTitle}>{item.service.name}</span>
-                  {item.estado !== 'pendiente' && (
+                  {item.estado && (
                     <span className={ESTADO_CLASS[item.estado]}>{ESTADO_LABEL[item.estado]}</span>
                   )}
                 </div>
