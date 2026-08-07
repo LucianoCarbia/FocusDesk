@@ -1,5 +1,10 @@
 import { RecurringEventRepository } from '../../database/repositories/RecurringEventRepository'
-import type { RecurringEvent, RecurringEventSkip } from '../../domain/calendario/RecurringEvent'
+import type {
+  DaySchedule,
+  RecurringEvent,
+  RecurringEventSkip,
+  ScheduleMode,
+} from '../../domain/calendario/RecurringEvent'
 import type { MovementType } from '../../domain/shared/MovementType'
 import { obtenerOCrearCategoria } from './categoryService'
 import { obtenerOCrearCategoria as obtenerOCrearCategoriaFinanciera } from '../finanzas/financeCategoryService'
@@ -8,8 +13,10 @@ export interface RecurringEventFormInput {
   title: string
   categoryName: string
   daysOfWeek: number[]
+  scheduleMode: ScheduleMode
   startTime: string | null
   endTime: string | null
+  daySchedules: DaySchedule[]
   location: string | null
   notes: string | null
   startDate: string
@@ -33,6 +40,15 @@ function validar(input: RecurringEventFormInput) {
     if (!input.movementType) throw new Error('Elegí el tipo de movimiento (ingreso, gasto o ahorro)')
     if (!input.financeCategoryName?.trim()) throw new Error('La categoría de Finanzas es obligatoria')
   }
+}
+
+// Completa con "sin horario" los días seleccionados que todavía no tienen una entrada propia.
+function resolverDaySchedules(input: RecurringEventFormInput): DaySchedule[] {
+  if (input.scheduleMode !== 'personalizado') return []
+  return input.daysOfWeek.map((weekday) => {
+    const propio = input.daySchedules.find((d) => d.weekday === weekday)
+    return propio ?? { weekday, startTime: null, endTime: null }
+  })
 }
 
 async function resolverDatosFinancieros(input: RecurringEventFormInput) {
@@ -64,8 +80,10 @@ export async function crearHorarioFijo(input: RecurringEventFormInput): Promise<
     title: input.title.trim(),
     categoryId: categoria.id,
     daysOfWeek: input.daysOfWeek,
-    startTime: input.startTime,
-    endTime: input.endTime,
+    scheduleMode: input.scheduleMode,
+    startTime: input.scheduleMode === 'unico' ? input.startTime : null,
+    endTime: input.scheduleMode === 'unico' ? input.endTime : null,
+    daySchedules: resolverDaySchedules(input),
     location: input.location,
     notes: input.notes,
     startDate: input.startDate,
@@ -83,8 +101,10 @@ export async function actualizarHorarioFijo(id: string, input: RecurringEventFor
     title: input.title.trim(),
     categoryId: categoria.id,
     daysOfWeek: input.daysOfWeek,
-    startTime: input.startTime,
-    endTime: input.endTime,
+    scheduleMode: input.scheduleMode,
+    startTime: input.scheduleMode === 'unico' ? input.startTime : null,
+    endTime: input.scheduleMode === 'unico' ? input.endTime : null,
+    daySchedules: resolverDaySchedules(input),
     location: input.location,
     notes: input.notes,
     startDate: input.startDate,

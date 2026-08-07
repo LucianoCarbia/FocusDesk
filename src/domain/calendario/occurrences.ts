@@ -8,6 +8,12 @@ export interface AgendaEntry extends CalendarEvent {
   recurringEventId?: string
 }
 
+function resolverHorario(regla: RecurringEvent, weekday: number): { startTime: string | null; endTime: string | null } {
+  if (regla.scheduleMode !== 'personalizado') return { startTime: regla.startTime, endTime: regla.endTime }
+  const propio = regla.daySchedules.find((d) => d.weekday === weekday)
+  return { startTime: propio?.startTime ?? null, endTime: propio?.endTime ?? null }
+}
+
 export function generarOcurrencias(
   reglas: RecurringEvent[],
   skipsPorRegla: Map<string, RecurringEventSkip[]>,
@@ -29,13 +35,15 @@ export function generarOcurrencias(
       if (regla.skipHolidays && isHoliday(d)) continue
       if (skips.some((s) => iso >= s.startDate && iso <= s.endDate)) continue
 
+      const { startTime, endTime } = resolverHorario(regla, weekday)
+
       result.push({
         id: `${regla.id}__${iso}`,
         title: regla.title,
         categoryId: regla.categoryId,
         date: iso,
-        startTime: regla.startTime,
-        endTime: regla.endTime,
+        startTime,
+        endTime,
         location: regla.location,
         notes: regla.notes,
         amount: regla.amount,
