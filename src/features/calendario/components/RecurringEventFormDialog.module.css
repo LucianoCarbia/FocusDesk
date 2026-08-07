@@ -99,6 +99,27 @@
   color: white;
 }
 
+.daySchedules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dayScheduleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.dayScheduleLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
 .checkboxField {
   display: flex;
   align-items: center;

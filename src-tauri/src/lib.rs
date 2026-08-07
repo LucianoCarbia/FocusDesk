@@ -215,6 +215,24 @@ fn migrations() -> Vec<Migration> {
                 UPDATE service_periods SET paid_amount_ars = amount WHERE paid = 1;
             ",
         },
+        Migration {
+            version: 8,
+            description: "add_recurring_event_day_schedules",
+            kind: MigrationKind::Up,
+            sql: "
+                ALTER TABLE recurring_events ADD COLUMN schedule_mode TEXT NOT NULL DEFAULT 'unico';
+
+                CREATE TABLE recurring_event_day_schedules (
+                    id TEXT PRIMARY KEY,
+                    recurring_event_id TEXT NOT NULL REFERENCES recurring_events(id) ON DELETE CASCADE,
+                    weekday INTEGER NOT NULL,
+                    start_time TEXT,
+                    end_time TEXT
+                );
+
+                CREATE INDEX idx_recurring_event_day_schedules_event ON recurring_event_day_schedules(recurring_event_id);
+            ",
+        },
     ]
 }
 

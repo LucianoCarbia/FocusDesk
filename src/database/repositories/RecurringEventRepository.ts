@@ -1,9 +1,11 @@
 import { getDb } from '../db'
 import type {
+  DaySchedule,
   NewRecurringEvent,
   RecurringEvent,
   RecurringEventSkip,
   RecurringEventUpdate,
+  ScheduleMode,
 } from '../../domain/calendario/RecurringEvent'
 import type { MovementType } from '../../domain/shared/MovementType'
 
@@ -12,6 +14,7 @@ interface RecurringEventRow {
   title: string
   category_id: string
   days_of_week: string
+  schedule_mode: ScheduleMode
   start_time: string | null
   end_time: string | null
   location: string | null
@@ -33,7 +36,15 @@ interface SkipRow {
   end_date: string
 }
 
-function toRecurringEvent(row: RecurringEventRow): RecurringEvent {
+interface DayScheduleRow {
+  id: string
+  recurring_event_id: string
+  weekday: number
+  start_time: string | null
+  end_time: string | null
+}
+
+function toRecurringEvent(row: RecurringEventRow, daySchedules: DaySchedule[]): RecurringEvent {
   return {
     id: row.id,
     title: row.title,
@@ -42,8 +53,10 @@ function toRecurringEvent(row: RecurringEventRow): RecurringEvent {
       .split(',')
       .filter(Boolean)
       .map((n) => Number(n)),
+    scheduleMode: row.schedule_mode,
     startTime: row.start_time,
     endTime: row.end_time,
+    daySchedules,
     location: row.location,
     notes: row.notes,
     startDate: row.start_date,
@@ -66,11 +79,51 @@ function toSkip(row: SkipRow): RecurringEventSkip {
   }
 }
 
+async function findDaySchedulesByEvent(recurringEventIds: string[]): Promise<Map<string, DaySchedule[]>> {
+  const map = new Map<string, DaySchedule[]>()
+  if (recurringEventIds.length === 0) return map
+
+  const db = await getDb()
+  const placeholders = recurringEventIds.map((_, i) => `$${i + 1}`).join(', ')
+  const rows = await db.select<DayScheduleRow[]>(
+    `SELECT * FROM recurring_event_day_schedules WHERE recurring_event_id IN (${placeholders})`,
+    recurringEventIds,
+  )
+  for (const row of rows) {
+    const list = map.get(row.recurring_event_id) ?? []
+    list.push({ weekday: row.weekday, startTime: row.start_time, endTime: row.end_time })
+    map.set(row.recurring_event_id, list)
+  }
+  return map
+}
+
+async function attachDaySchedules(rows: RecurringEventRow[]): Promise<RecurringEvent[]> {
+  const schedulesByEvent = await findDaySchedulesByEvent(rows.map((r) => r.id))
+  return rows.map((row) => toRecurringEvent(row, schedulesByEvent.get(row.id) ?? []))
+}
+
+async function replaceDaySchedules(
+  recurringEventId: string,
+  scheduleMode: ScheduleMode,
+  daySchedules: DaySchedule[],
+): Promise<void> {
+  const db = await getDb()
+  await db.execute('DELETE FROM recurring_event_day_schedules WHERE recurring_event_id = $1', [recurringEventId])
+  if (scheduleMode !== 'personalizado') return
+
+  for (const schedule of daySchedules) {
+    await db.execute(
+      'INSERT INTO recurring_event_day_schedules (id, recurring_event_id, weekday, start_time, end_time) VALUES ($1, $2, $3, $4, $5)',
+      [crypto.randomUUID(), recurringEventId, schedule.weekday, schedule.startTime, schedule.endTime],
+    )
+  }
+}
+
 export const RecurringEventRepository = {
   async findAll(): Promise<RecurringEvent[]> {
     const db = await getDb()
     const rows = await db.select<RecurringEventRow[]>('SELECT * FROM recurring_events ORDER BY title ASC')
-    return rows.map(toRecurringEvent)
+    return attachDaySchedules(rows)
   },
 
   async findActive(startDate: string, endDate: string): Promise<RecurringEvent[]> {
@@ -79,7 +132,7 @@ export const RecurringEventRepository = {
       'SELECT * FROM recurring_events WHERE start_date <= $1 AND (end_date IS NULL OR end_date >= $2) ORDER BY title ASC',
       [endDate, startDate],
     )
-    return rows.map(toRecurringEvent)
+    return attachDaySchedules(rows)
   },
 
   async findSkips(recurringEventIds: string[]): Promise<RecurringEventSkip[]> {
@@ -97,13 +150,14 @@ export const RecurringEventRepository = {
     const db = await getDb()
     await db.execute(
       `INSERT INTO recurring_events
-        (id, title, category_id, days_of_week, start_time, end_time, location, notes, start_date, end_date, skip_holidays, amount, movement_type, finance_category_id, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, datetime('now'), datetime('now'))`,
+        (id, title, category_id, days_of_week, schedule_mode, start_time, end_time, location, notes, start_date, end_date, skip_holidays, amount, movement_type, finance_category_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, datetime('now'), datetime('now'))`,
       [
         id,
         event.title,
         event.categoryId,
         event.daysOfWeek.join(','),
+        event.scheduleMode,
         event.startTime,
         event.endTime,
         event.location,
@@ -116,21 +170,23 @@ export const RecurringEventRepository = {
         event.financeCategoryId,
       ],
     )
+    await replaceDaySchedules(id, event.scheduleMode, event.daySchedules)
   },
 
   async update(id: string, event: RecurringEventUpdate): Promise<void> {
     const db = await getDb()
     await db.execute(
       `UPDATE recurring_events SET
-        title = $1, category_id = $2, days_of_week = $3, start_time = $4, end_time = $5,
-        location = $6, notes = $7, start_date = $8, end_date = $9, skip_holidays = $10,
-        amount = $11, movement_type = $12, finance_category_id = $13,
+        title = $1, category_id = $2, days_of_week = $3, schedule_mode = $4, start_time = $5, end_time = $6,
+        location = $7, notes = $8, start_date = $9, end_date = $10, skip_holidays = $11,
+        amount = $12, movement_type = $13, finance_category_id = $14,
         updated_at = datetime('now')
-       WHERE id = $14`,
+       WHERE id = $15`,
       [
         event.title,
         event.categoryId,
         event.daysOfWeek.join(','),
+        event.scheduleMode,
         event.startTime,
         event.endTime,
         event.location,
@@ -144,6 +200,7 @@ export const RecurringEventRepository = {
         id,
       ],
     )
+    await replaceDaySchedules(id, event.scheduleMode, event.daySchedules)
   },
 
   async delete(id: string): Promise<void> {

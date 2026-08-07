@@ -7,13 +7,23 @@ export interface RecurringEventSkip {
 
 import type { MovementType } from '../shared/MovementType'
 
+export type ScheduleMode = 'unico' | 'personalizado'
+
+export interface DaySchedule {
+  weekday: number // 0 = lunes … 6 = domingo
+  startTime: string | null
+  endTime: string | null
+}
+
 export interface RecurringEvent {
   id: string
   title: string
   categoryId: string
   daysOfWeek: number[] // 0 = lunes … 6 = domingo
-  startTime: string | null
+  scheduleMode: ScheduleMode
+  startTime: string | null // horario cuando scheduleMode === 'unico'
   endTime: string | null
+  daySchedules: DaySchedule[] // horarios cuando scheduleMode === 'personalizado'
   location: string | null
   notes: string | null
   startDate: string
@@ -30,8 +40,10 @@ export interface NewRecurringEvent {
   title: string
   categoryId: string
   daysOfWeek: number[]
+  scheduleMode: ScheduleMode
   startTime: string | null
   endTime: string | null
+  daySchedules: DaySchedule[]
   location: string | null
   notes: string | null
   startDate: string

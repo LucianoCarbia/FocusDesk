@@ -15,6 +15,19 @@ import { RecurringEventPausesDialog } from './RecurringEventPausesDialog'
 import styles from './RecurringEventsManager.module.css'
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+const WEEKDAY_SHORT_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+
+function formatDaySchedules(event: RecurringEvent): string {
+  return event.daySchedules
+    .slice()
+    .sort((a, b) => a.weekday - b.weekday)
+    .map((schedule) => {
+      const label = WEEKDAY_SHORT_LABELS[schedule.weekday]
+      if (!schedule.startTime) return label
+      return `${label} ${schedule.startTime}${schedule.endTime ? `-${schedule.endTime}` : ''}`
+    })
+    .join(' · ')
+}
 
 interface RecurringEventsManagerProps {
   categories: Category[]
@@ -110,11 +123,15 @@ export function RecurringEventsManager({
                 <div className={styles.itemBody}>
                   <span className={styles.itemTitle}>{event.title}</span>
                   <span className={styles.itemMeta}>{formatDays(event.daysOfWeek)}</span>
-                  {(event.startTime || event.endTime) && (
-                    <span className={styles.itemMeta}>
-                      {event.startTime}
-                      {event.endTime ? ` - ${event.endTime}` : ''}
-                    </span>
+                  {event.scheduleMode === 'personalizado' ? (
+                    <span className={styles.itemMeta}>{formatDaySchedules(event)}</span>
+                  ) : (
+                    (event.startTime || event.endTime) && (
+                      <span className={styles.itemMeta}>
+                        {event.startTime}
+                        {event.endTime ? ` - ${event.endTime}` : ''}
+                      </span>
+                    )
                   )}
                   <span className={styles.itemMeta}>{formatRange(event.startDate, event.endDate)}</span>
                 </div>

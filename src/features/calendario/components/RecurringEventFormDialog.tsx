@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Category } from '../../../domain/calendario/Category'
-import type { RecurringEvent } from '../../../domain/calendario/RecurringEvent'
+import type { RecurringEvent, ScheduleMode } from '../../../domain/calendario/RecurringEvent'
 import type { FinanceCategory } from '../../../domain/finanzas/FinanceCategory'
 import type { MovementType } from '../../../domain/shared/MovementType'
 import type { RecurringEventFormInput } from '../../../services/calendario/recurringEventService'
@@ -19,6 +19,16 @@ const WEEKDAYS = [
   { value: 4, label: 'Vie' },
   { value: 5, label: 'Sáb' },
   { value: 6, label: 'Dom' },
+]
+
+interface HorarioDia {
+  startTime: string
+  endTime: string
+}
+
+const SCHEDULE_MODES: { value: ScheduleMode; label: string }[] = [
+  { value: 'unico', label: 'Horario único' },
+  { value: 'personalizado', label: 'Horarios personalizados' },
 ]
 
 interface RecurringEventFormDialogProps {
@@ -51,8 +61,16 @@ export function RecurringEventFormDialog({
     editingEvent ? categoryName(categories, editingEvent.categoryId) : '',
   )
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(editingEvent?.daysOfWeek ?? [])
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(editingEvent?.scheduleMode ?? 'unico')
   const [startTime, setStartTime] = useState(editingEvent?.startTime ?? '')
   const [endTime, setEndTime] = useState(editingEvent?.endTime ?? '')
+  const [daySchedules, setDaySchedules] = useState<Record<number, HorarioDia>>(() => {
+    const inicial: Record<number, HorarioDia> = {}
+    for (const schedule of editingEvent?.daySchedules ?? []) {
+      inicial[schedule.weekday] = { startTime: schedule.startTime ?? '', endTime: schedule.endTime ?? '' }
+    }
+    return inicial
+  })
   const [location, setLocation] = useState(editingEvent?.location ?? '')
   const [notes, setNotes] = useState(editingEvent?.notes ?? '')
   const [startDate, setStartDate] = useState(editingEvent?.startDate ?? toISODate(initialDate))
@@ -76,6 +94,13 @@ export function RecurringEventFormDialog({
     )
   }
 
+  function updateDaySchedule(weekday: number, campo: keyof HorarioDia, valor: string) {
+    setDaySchedules((current) => ({
+      ...current,
+      [weekday]: { startTime: current[weekday]?.startTime ?? '', endTime: current[weekday]?.endTime ?? '', [campo]: valor },
+    }))
+  }
+
   async function handleSubmit(formEvent: FormEvent) {
     formEvent.preventDefault()
     setSubmitting(true)
@@ -85,8 +110,17 @@ export function RecurringEventFormDialog({
         title,
         categoryName: category,
         daysOfWeek,
+        scheduleMode,
         startTime: startTime || null,
         endTime: endTime || null,
+        daySchedules:
+          scheduleMode === 'personalizado'
+            ? daysOfWeek.map((weekday) => ({
+                weekday,
+                startTime: daySchedules[weekday]?.startTime || null,
+                endTime: daySchedules[weekday]?.endTime || null,
+              }))
+            : [],
         location: location || null,
         notes: notes || null,
         startDate,
@@ -141,16 +175,61 @@ export function RecurringEventFormDialog({
             </div>
           </div>
 
-          <div className={styles.row}>
-            <label className={styles.field}>
-              <span>Hora inicio</span>
-              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            </label>
-            <label className={styles.field}>
-              <span>Hora fin</span>
-              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            </label>
+          <div className={styles.field}>
+            <span>Horario</span>
+            <div className={styles.days}>
+              {SCHEDULE_MODES.map((mode) => (
+                <button
+                  key={mode.value}
+                  type="button"
+                  className={scheduleMode === mode.value ? styles.dayActive : styles.day}
+                  onClick={() => setScheduleMode(mode.value)}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {scheduleMode === 'unico' ? (
+            <div className={styles.row}>
+              <label className={styles.field}>
+                <span>Hora inicio</span>
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              </label>
+              <label className={styles.field}>
+                <span>Hora fin</span>
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </label>
+            </div>
+          ) : (
+            <div className={styles.daySchedules}>
+              {WEEKDAYS.filter((day) => daysOfWeek.includes(day.value)).map((day) => (
+                <div key={day.value} className={styles.dayScheduleRow}>
+                  <span className={styles.dayScheduleLabel}>{day.label}</span>
+                  <div className={styles.row}>
+                    <label className={styles.field}>
+                      <span>Hora inicio</span>
+                      <input
+                        type="time"
+                        value={daySchedules[day.value]?.startTime ?? ''}
+                        onChange={(e) => updateDaySchedule(day.value, 'startTime', e.target.value)}
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>Hora fin</span>
+                      <input
+                        type="time"
+                        value={daySchedules[day.value]?.endTime ?? ''}
+                        onChange={(e) => updateDaySchedule(day.value, 'endTime', e.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              ))}
+              {daysOfWeek.length === 0 && <p className={styles.error}>Elegí primero los días de la semana.</p>}
+            </div>
+          )}
 
           <label className={styles.field}>
             <span>Ubicación</span>
