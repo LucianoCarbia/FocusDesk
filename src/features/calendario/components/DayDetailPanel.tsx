@@ -12,13 +12,13 @@ import styles from './DayDetailPanel.module.css'
 
 const ESTADO_LABEL: Record<EstadoServicio, string> = {
   pagado: 'Pagado',
-  pendiente: 'Pendiente',
+  proximo: 'Próximo a pagar',
   vencido: 'Vencido',
 }
 
 const ESTADO_CLASS: Record<EstadoServicio, string> = {
   pagado: styles.vencimientoPagado,
-  pendiente: '',
+  proximo: styles.vencimientoPendiente,
   vencido: styles.vencimientoVencido,
 }
 
@@ -113,7 +113,7 @@ export function DayDetailPanel({
         <div className={styles.movements}>
           <span className={styles.movementsTitle}>Vencimientos</span>
           {servicios.map(({ service, period, estado }) => (
-            <div key={period.id} className={`${styles.vencimiento} ${ESTADO_CLASS[estado]}`}>
+            <div key={period.id} className={`${styles.vencimiento} ${estado ? ESTADO_CLASS[estado] : ''}`}>
               <span className={styles.vencimientoIcon}>
                 <ReceiptIcon width={16} height={16} />
               </span>
@@ -121,9 +121,7 @@ export function DayDetailPanel({
                 <span className={styles.vencimientoTitle}>{service.name}</span>
                 <span className={styles.vencimientoAmount}>{formatAmount(period.amount, period.currency)}</span>
               </div>
-              {estado !== 'pendiente' && (
-                <span className={styles.vencimientoEstado}>{ESTADO_LABEL[estado]}</span>
-              )}
+              {estado && <span className={styles.vencimientoEstado}>{ESTADO_LABEL[estado]}</span>}
             </div>
           ))}
         </div>

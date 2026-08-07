@@ -68,6 +68,7 @@ export function CalendarioPage() {
         selectedDate={selectedDate}
         categories={categories}
         eventosDelDia={eventosDelDia}
+        serviciosDelDia={serviciosDelDia}
         onSelect={setSelectedDate}
       />
 

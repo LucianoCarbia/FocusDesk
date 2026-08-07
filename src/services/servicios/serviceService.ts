@@ -21,7 +21,7 @@ export interface ServiceFormInput {
 export interface ServicioConEstado {
   service: Service
   period: ServicePeriod
-  estado: EstadoServicio
+  estado: EstadoServicio | null
 }
 
 function validar(input: ServiceFormInput) {
@@ -152,6 +152,7 @@ export async function marcarComoPagado(periodId: string, exchangeRate: number | 
   const [services, periods] = await Promise.all([ServiceRepository.findAll(), ServicePeriodRepository.findAll()])
   const period = periods.find((p) => p.id === periodId)
   if (!period) throw new Error('El vencimiento no existe')
+  if (period.paid) throw new Error('Este servicio ya fue pagado en este período')
   const service = services.find((s) => s.id === period.serviceId)
   if (!service) throw new Error('El servicio no existe')
 
